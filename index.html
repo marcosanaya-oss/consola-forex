@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FX-CORE | Terminal de Señales v15</title>
+    <title>FX-CORE | Terminal de Señales v15.1</title>
     <style>
         body {
             background-color: #0b0f19;
@@ -40,7 +40,7 @@
         }
         .row {
             display: grid;
-            grid-template-columns: 2.5fr 2.5fr 2.5fr 2.5fr; /* Añadida columna de correlación */
+            grid-template-columns: 2.5fr 2.5fr 2.5fr 2.5fr;
             align-items: center;
             padding: 14px 8px;
             border-bottom: 1px solid #1f2937;
@@ -50,9 +50,9 @@
         .session-info { font-size: 11px; color: #9ca3af; }
         .price { font-family: monospace; font-size: 15px; text-align: right; padding-right: 15px; }
         .correlation { font-family: monospace; font-size: 13px; text-align: center; font-weight: bold; }
-        .corr-directa { color: #34d399; } /* Verde para correlación sana */
-        .corr-inversa { color: #f87171; } /* Rojo para correlación inversa sana */
-        .corr-divergente { color: #fbbf24; background: #78350f; padding: 2px 4px; border-radius: 4px; animation: pulse 1.5s infinite; } /* Alerta SMT */
+        .corr-directa { color: #34d399; }
+        .corr-inversa { color: #f87171; }
+        .corr-divergente { color: #fbbf24; background: #78350f; padding: 2px 4px; border-radius: 4px; animation: pulse 1.5s infinite; }
         .signal-wrapper { display: flex; justify-content: flex-end; }
         .signal { width: 100%; max-width: 120px; text-align: center; font-weight: bold; padding: 6px 0; border-radius: 4px; font-size: 11px; letter-spacing: 0.5px; }
         .alcista { background-color: #065f46; color: #34d399; border: 1px solid #059669; }
@@ -64,14 +64,12 @@
 </head>
 <body>
 
-<!-- CONTENEDOR 1: MONITOR SMC CON MATRIZ DE CORRELACIÓN -->
 <div class="container">
     <div class="header">
-        <span>[FX-CORE] MATRIZ INSTITUCIONAL + MEDIDOR DE CORRELACIÓN V15</span>
-        <span class="session-badge" id="current-session">DETECTANDO SESIÓN...</span>
+        <span>[FX-CORE] MATRIZ INSTITUCIONAL + MEDIDOR DE CORRELACIÓN V15.1</span>
+        <span class="session-badge" id="current-session">MERCADO CERRADO</span>
     </div>
 
-    <!-- Encabezados de tabla para claridad visual -->
     <div class="row" style="font-size: 11px; color: #9ca3af; font-weight: bold; border-bottom: 2px solid #1f2937; padding-bottom: 5px;">
         <div>ACTIVO</div>
         <div style="text-align: right; padding-right: 15px;">PRECIO</div>
@@ -80,7 +78,7 @@
     </div>
 
     <div id="monitor">
-        <!-- Inyección dinámica -->
+        <!-- Carga fluida de datos -->
     </div>
 
     <div class="status">
@@ -88,7 +86,6 @@
     </div>
 </div>
 
-<!-- CONTENEDOR 2: CALENDARIO ECONÓMICO -->
 <div class="container" style="margin-top: 20px;">
     <div class="header" style="color: #fbbf24;">
         <span>⚠️ CALENDARIO ECONÓMICO GLOBAL</span>
@@ -109,10 +106,15 @@
     };
 
     function obtenerSesionActual() {
-        const horaChile = new Date().toLocaleString("es-CL", {timeZone: "America/Santiago", hour: "2-digit", hour12: false});
-        const diaChile = new Date().getDay(); 
-        if (diaChile === 6 || (diaChile === 0 && parseInt(horaChile) < 17)) return 'MERCADO CERRADO (FIN DE SEMANA)';
-        const horaUTC = new Date().getUTCHours();
+        const ahora = new Date();
+        const dia = ahora.getDay(); 
+        const horaUTC = ahora.getUTCHours();
+
+        // Bloque dinámico nativo de fin de semana (Sábado completo y Domingo antes de apertura)
+        if (dia === 6 || (dia === 0 && horaUTC < 21)) {
+            return 'MERCADO CERRADO (FIN DE SEMANA)';
+        }
+        
         if (horaUTC >= 7 && horaUTC < 15) return 'SESIÓN: LONDRES (EXPANSIÓN)';
         if (horaUTC >= 13 && horaUTC < 21) return 'SESIÓN: NUEVA YORK (VOLATILIDAD)';
         return 'SESIÓN: ASIA (RANGO ACUMULATIVO)';
@@ -125,56 +127,35 @@
         monitorDiv.innerHTML = ''; 
 
         const esMercadoCerrado = sesionActual === 'MERCADO CERRADO (FIN DE SEMANA)';
-
-        // 1. Simular movimiento de precios si el mercado está abierto
-        Object.keys(mercado).forEach(par => {
-            if (!esMercadoCerrado) {
-                const esOro = par === 'XAUUSD';
-                const esDxy = par === 'DXY';
-                const ruido = (Math.random() - 0.5) * (esOro ? 0.90 : esDxy ? 0.015 : 0.00015);
-                mercado[par].precio += ruido;
-            }
-        });
-
-        // 2. Determinar la dirección actual del DXY para evaluar las correlaciones
         const dxySube = mercado['DXY'].precio >= mercado['DXY'].base;
 
-        // 3. Renderizar y procesar las señales y coeficientes de correlación
         Object.keys(mercado).forEach(par => {
             const data = mercado[par];
             const esOro = par === 'XAUUSD';
             const esDxy = par === 'DXY';
 
+            if (!esMercadoCerrado) {
+                const ruido = (Math.random() - 0.5) * (esOro ? 0.90 : esDxy ? 0.015 : 0.00015);
+                data.precio += ruido;
+            }
+
             let stringCorrelacion = "100%";
             let claseCorrelacion = "corr-directa";
 
-            // LÓGICA DE AUDITORÍA DE CORRELACIÓN (Filtro SMT)
             if (!esDxy) {
                 const parSube = data.precio >= data.base;
-                
                 if (data.tipo === 'INVERSA') {
-                    if (dxySube !== parSube) {
-                        stringCorrelacion = "-96%"; // Relación inversa normal y sana
-                        claseCorrelacion = "corr-inversa";
-                    } else {
-                        stringCorrelacion = "SMT DIV"; // ¡ALERTA! El DXY y el par se mueven hacia el mismo lado
-                        claseCorrelacion = "corr-divergente";
-                    }
+                    if (dxySube !== parSube) { stringCorrelacion = "-96%"; claseCorrelacion = "corr-inversa"; }
+                    else { stringCorrelacion = "SMT DIV"; claseCorrelacion = "corr-divergente"; }
                 } else if (data.tipo === 'DIRECTA') {
-                    if (dxySube === parSube) {
-                        stringCorrelacion = "+94%"; // Relación directa normal y sana
-                        claseCorrelacion = "corr-directa";
-                    } else {
-                        stringCorrelacion = "SMT DIV"; // Alerta SMT en Franco Suizo
-                        claseCorrelacion = "corr-divergente";
-                    }
+                    if (dxySube === parSube) { stringCorrelacion = "+94%"; claseCorrelacion = "corr-directa"; }
+                    else { stringCorrelacion = "SMT DIV"; claseCorrelacion = "corr-divergente"; }
                 }
             } else {
                 stringCorrelacion = "MATRIZ";
                 claseCorrelacion = "corr-directa";
             }
 
-            // Si hay divergencia SMT, el sistema fuerza un estado neutral para advertir la falsa ruptura
             let senalStatus = 'ESPERANDO MSS';
             let claseEstilo = 'neutral';
 
@@ -205,3 +186,18 @@
                     <div class="session-info">${esMercadoCerrado ? 'Cierre Fijo' : 'SMC Filter'}</div>
                 </div>
                 <div class="price">${data.precio.toFixed(esOro ? 2 : esDxy ? 3 : 5)}</div>
+                <div class="correlation ${claseCorrelacion}">${stringCorrelacion}</div>
+                <div class="signal-wrapper">
+                    <div class="signal ${claseEstilo}">${senalStatus}</div>
+                </div>
+            `;
+            monitorDiv.appendChild(fila);
+        });
+    }
+
+    procesarEstructura();
+    setInterval(procesarEstructura, 3500);
+</script>
+
+</body>
+</html>
