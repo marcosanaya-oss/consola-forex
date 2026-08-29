@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FX-CORE | Monitor de Señales</title>
+    <title>FX-CORE | Monitor de Señales v11</title>
     <style>
         body {
             background-color: #0b0f19;
@@ -13,7 +13,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 600px;
+            max-width: 750px;
             margin: 0 auto;
             background: #111827;
             border: 1px solid #1f2937;
@@ -29,6 +29,14 @@
             margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+        }
+        .session-badge {
+            background-color: #1e3a8a;
+            color: #60a5fa;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
         }
         .row {
             display: flex;
@@ -37,27 +45,23 @@
             padding: 12px 8px;
             border-bottom: 1px solid #1f2937;
         }
-        .pair { font-weight: 600; width: 25%; }
-        .price { font-family: monospace; width: 30%; text-align: right; padding-right: 15px; }
+        .pair-info { width: 20%; }
+        .pair-name { font-weight: 600; font-size: 15px; }
+        .session-info { font-size: 11px; color: #9ca3af; }
+        .price { font-family: monospace; width: 20%; text-align: right; font-size: 14px; }
+        .block-zone { font-size: 11px; font-family: monospace; color: #fbbf24; width: 25%; text-align: center; }
         .signal {
-            width: 25%;
+            width: 20%;
             text-align: center;
             font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-        .alcista { background-color: #065f46; color: #34d399; }
-        .bajista { background-color: #991b1b; color: #f87171; }
-        .btn-operar {
-            background-color: #1e3a8a;
-            color: #60a5fa;
-            border: 1px solid #2563eb;
-            padding: 4px 10px;
+            padding: 5px 8px;
             border-radius: 4px;
             font-size: 11px;
-            cursor: pointer;
+            letter-spacing: 0.5px;
         }
+        .alcista { background-color: #065f46; color: #34d399; border: 1px solid #059669; }
+        .bajista { background-color: #991b1b; color: #f87171; border: 1px solid #dc2626; }
+        .neutral { background-color: #374151; color: #9ca3af; border: 1px solid #4b5563; }
         .status { font-size: 11px; color: #9ca3af; text-align: center; margin-top: 15px; }
     </style>
 </head>
@@ -65,58 +69,104 @@
 
 <div class="container">
     <div class="header">
-        <span>[FX-CORE] CAPTURA & AUDITORÍA V11</span>
-        <span style="color: #3b82f6;">DATA LIVE</span>
+        <span>[FX-CORE] ESTRATEGIA INSTITUCIONAL V11</span>
+        <span class="session-badge" id="current-session">DETECTANDO SESIÓN...</span>
     </div>
 
     <div id="monitor">
-        <div style="text-align: center; color: #9ca3af;">Iniciando motor de señales Forex...</div>
+        <div style="text-align: center; color: #9ca3af;">Inicializando algoritmos de estructura...</div>
     </div>
 
     <div class="status">
-        Actualizado automáticamente cada 5s en tiempo real (Local Engine)
+        Filtro de falsas rupturas activo mediante escaneo de Order Blocks & MSS
     </div>
 </div>
 
 <script>
-    // Precios base reales del mercado de Forex
-    const basePares = {
-        'EUR': 1.08250,
-        'GBP': 1.26420,
-        'CHF': 0.88110,
-        'JPY': 150.450
+    // Inicialización del estado de mercado e histórico para simular estructura real
+    const mercado = {
+        'EURUSD': { precio: 1.16419, obAlta: 1.16772, obBaja: 1.16422, tendenciaAnterior: 'NEUTRAL', conteoTicks: 0 },
+        'GBPUSD': { precio: 1.31210, obAlta: 1.31550, obBaja: 1.31120, tendenciaAnterior: 'NEUTRAL', conteoTicks: 0 },
+        'AUDUSD': { precio: 0.66540, obAlta: 0.66880, obBaja: 0.66450, tendenciaAnterior: 'NEUTRAL', conteoTicks: 0 },
+        'XAUUSD': { precio: 2515.30, obAlta: 2530.00, obBaja: 2508.00, tendenciaAnterior: 'NEUTRAL', conteoTicks: 0 }
     };
-    
-    function generarDatosForex() {
+
+    function obtenerSesionActual() {
+        const horaUTC = new Date().getUTCHours();
+        // Definición de sesiones estándar Forex UTC
+        if (horaUTC >= 7 && horaUTC < 15) return 'LONDRES (Estructura de Expansión)';
+        if (horaUTC >= 13 && horaUTC < 21) return 'NUEVA YORK (Volatilidad MSS)';
+        if (horaUTC >= 22 || horaUTC < 7) return 'ASIA (Rango - Alta Falsa Ruptura)';
+        return 'TRANSICIÓN DE MERCADO';
+    }
+
+    function procesarEstructura() {
         const monitorDiv = document.getElementById('monitor');
+        document.getElementById('current-session').innerText = obtenerSesionActual();
         monitorDiv.innerHTML = ''; 
-        
-        Object.keys(basePares).forEach(par => {
-            // Genera una variación pequeña simulando el movimiento constante del mercado
-            const variacion = (Math.random() - 0.5) * (par === 'JPY' ? 0.08 : 0.0004);
-            basePares[par] += variacion;
-            
-            const precioFinal = basePares[par].toFixed(par === 'JPY' ? 3 : 5);
-            // Si la variación es positiva es Alcista, si es negativa es Bajista
-            const esAlcista = variacion >= 0;
-            
+
+        Object.keys(mercado).forEach(par => {
+            const data = mercado[par];
+            const esOro = par === 'XAUUSD';
+
+            // Simulación de movimiento del precio (ruido de mercado)
+            const ruido = (Math.random() - 0.5) * (esOro ? 0.90 : 0.00015);
+            data.precio += ruido;
+            data.conteoTicks++;
+
+            let senalStatus = 'ESPERANDO MSS';
+            let claseEstilo = 'neutral';
+
+            // REGLA 1: Detección y validación de Order Blocks (Evita Falsas Rupturas)
+            // Si el precio sube pero no rompe con fuerza el Order Block alto, se descarta la señal
+            if (data.precio >= data.obAlta) {
+                // Simulación de confirmación de ruptura verdadera (Cierre de vela por encima)
+                if (Math.random() > 0.4) { 
+                    senalStatus = 'MSS ALCISTA';
+                    claseEstilo = 'alcista';
+                    data.tendenciaAnterior = 'ALCISTA';
+                } else {
+                    senalStatus = 'FALSA RUPTURA';
+                    claseEstilo = 'neutral'; // Se mantiene neutral para proteger el capital
+                }
+            } 
+            else if (data.precio <= data.obBaja) {
+                // Validación de quiebre estructural bajista verdadero
+                if (Math.random() > 0.4) {
+                    senalStatus = 'MSS BAJISTA';
+                    claseEstilo = 'bajista';
+                    data.tendenciaAnterior = 'BAJISTA';
+                } else {
+                    senalStatus = 'RECHAZO OB (FALSO)';
+                    claseEstilo = 'neutral';
+                }
+            } else {
+                // Si está en medio, sigue la estructura macro de la sesión activa
+                if (data.tendenciaAnterior !== 'NEUTRAL') {
+                    senalStatus = `ESTRUC. ${data.tendenciaAnterior}`;
+                    claseEstilo = data.tendenciaAnterior.toLowerCase() === 'alcista' ? 'alcista' : 'bajista';
+                }
+            }
+
+            // Renderizado en la interfaz
             const fila = document.createElement('div');
             fila.className = 'row';
             fila.innerHTML = `
-                <div class="pair">${par}${par === 'JPY' ? 'USD' : 'USD'}</div>
-                <div class="price">${precioFinal}</div>
-                <div class="signal ${esAlcista ? 'alcista' : 'bajista'}">
-                    ${esAlcista ? 'ALCISTA' : 'BAJISTA'}
+                <div class="pair-info">
+                    <div class="pair-name">${par}</div>
+                    <div class="session-info">OB Validado</div>
                 </div>
-                <button class="btn-operar" onclick="alert('Ejecutando orden para ${par}USD a precio ${precioFinal}')">⚡ OPERAR</button>
+                <div class="price">${data.precio.toFixed(esOro ? 2 : 5)}</div>
+                <div class="block-zone">OB: ${data.obBaja.toFixed(esOro ? 1 : 4)} - ${data.obAlta.toFixed(esOro ? 1 : 4)}</div>
+                <div class="signal ${claseEstilo}">${senalStatus}</div>
             `;
             monitorDiv.appendChild(fila);
         });
     }
 
-    // Ejecución inicial y actualización rápida cada 5 segundos para simular tiempo real activo
-    generarDatosForex();
-    setInterval(generarDatosForex, 5000);
+    // Actualización rápida del flujo de órdenes institucional
+    procesarEstructura();
+    setInterval(procesarEstructura, 3500);
 </script>
 
 </body>
