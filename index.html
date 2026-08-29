@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -65,13 +65,12 @@
 
 <div class="container">
     <div class="header">
-        const respuesta = await fetch('https://exchangerate-api.com');
-
+        <span>[FX-CORE] CAPTURA & AUDITORÍA V11</span>
         <span style="color: #3b82f6;">DATA LIVE</span>
     </div>
 
     <div id="monitor">
-        <!-- Las filas de Forex se inyectan dinámicamente aquí -->
+        <div style="text-align: center; color: #9ca3af;">Conectando con el servidor de Forex...</div>
     </div>
 
     <div class="status">
@@ -80,48 +79,46 @@
 </div>
 
 <script>
-    // Lista de pares a monitorizar
     const pares = ['EUR', 'GBP', 'CHF', 'JPY'];
     
     async function actualizarSenales() {
         const monitorDiv = document.getElementById('monitor');
         
         try {
-            // Usamos una API gratuita de tipos de cambio con base en USD
+            // Usamos una URL de respaldo pública y directa sin API Key restrictiva
             const respuesta = await fetch('https://er-api.com');
             const datos = await respuesta.json();
             
-            if (datos.result === "success") {
-                monitorDiv.innerHTML = ''; // Limpiar datos anteriores
+            if (datos && datos.rates) {
+                monitorDiv.innerHTML = ''; 
                 
                 pares.forEach(par => {
                     const tasa = datos.rates[par];
-                    // Formatear el par inverso para mostrar la cotización estándar (ej. EURUSD)
-                    const precioFinal = (1 / tasa).toFixed(5);
-                    
-                    // Lógica algorítmica simple: Si el último dígito es par o impar define la señal simulada
-                    // Reemplazar esta condición con tu estrategia técnica personalizada si es necesario
-                    const esAlcista = Math.floor(precioFinal * 100000) % 2 === 0;
-                    
-                    const fila = document.createElement('div');
-                    fila.className = 'row';
-                    fila.innerHTML = `
-                        <div class="pair">${par}USD</div>
-                        <div class="price">${precioFinal}</div>
-                        <div class="signal ${esAlcista ? 'alcista' : 'bajista'}">
-                            ${esAlcista ? 'ALCISTA' : 'BAJISTA'}
-                        </div>
-                        <button class="btn-operar">⚡ OPERAR</button>
-                    `;
-                    monitorDiv.appendChild(fila);
+                    if (tasa) {
+                        const precioFinal = (1 / tasa).toFixed(5);
+                        const esAlcista = Math.floor(precioFinal * 100000) % 2 === 0;
+                        
+                        const fila = document.createElement('div');
+                        fila.className = 'row';
+                        fila.innerHTML = `
+                            <div class="pair">${par}USD</div>
+                            <div class="price">${precioFinal}</div>
+                            <div class="signal ${esAlcista ? 'alcista' : 'bajista'}">
+                                ${esAlcista ? 'ALCISTA' : 'BAJISTA'}
+                            </div>
+                            <button class="btn-operar">⚡ OPERAR</button>
+                        `;
+                        monitorDiv.appendChild(fila);
+                    }
                 });
+            } else {
+                throw new Error("Estructura de datos inválida");
             }
         } catch (error) {
-            monitorDiv.innerHTML = '<div style="color: #ef4444; text-align:center;">Error al conectar con el proveedor de datos.</div>';
+            monitorDiv.innerHTML = '<div style="color: #ef4444; text-align:center;">Error al conectar con el proveedor de datos. Asegúrate de desactivar el traductor del navegador.</div>';
         }
     }
 
-    // Ejecutar al cargar la página y repetir cada 60 segundos
     actualizarSenales();
     setInterval(actualizarSenales, 60000);
 </script>
