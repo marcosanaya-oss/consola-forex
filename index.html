@@ -97,7 +97,7 @@
 </div>
 
 <script>
-    // ⚙️ CONFIGURACIÓN TELEGRAM: REEMPLAZA ESTOS DOS VALORES CON TUS CLAVES REALES
+    // ⚙️ CONFIGURACIÓN TELEGRAM (REEMPLAZA ESTOS DOS VALORES ENTRE LAS COMILLAS)
     const TELEGRAM_TOKEN = '8700331188:AAFEfsD_9aseQl30PctIh_WNLAvZWGXc4yU'; 
     const TELEGRAM_CHAT_ID = '1375812459';
 
@@ -178,7 +178,7 @@
                     if (Math.random() > 0.3) { 
                         senalStatus = 'MSS ALCISTA'; 
                         claseEstilo = 'alcista'; 
-                        if (data.tendenciaAnterior !== 'ALCISTA' && !esMercadoCerrado) {
+                        if (data.tendenciaAnterior !== 'ALCISTA' && !esMercatedoCerrado) {
                             data.tendenciaAnterior = 'ALCISTA';
                             dispararAlertaTelegram(`🚀 *[FX-CORE]* MSS ALCISTA CONFIRMADO\n📈 *Activo:* ${par}\n🎯 *Precio:* ${data.precio.toFixed(esOro ? 2 : esDxy ? 3 : 5)}\n🛡️ _Filtro SMT validado de forma limpia_`);
                         }
