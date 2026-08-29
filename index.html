@@ -13,7 +13,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 750px;
+            max-width: 600px;
             margin: 0 auto;
             background: #111827;
             border: 1px solid #1f2937;
@@ -39,21 +39,34 @@
             font-size: 11px;
         }
         .row {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 3fr 3fr 4fr; /* Columnas proporcionales */
             align-items: center;
-            padding: 12px 8px;
+            padding: 14px 8px;
             border-bottom: 1px solid #1f2937;
         }
-        .pair-info { width: 25%; }
+        .pair-info {
+            display: flex;
+            flex-direction: column;
+        }
         .pair-name { font-weight: 600; font-size: 15px; }
         .session-info { font-size: 11px; color: #9ca3af; }
-        .price { font-family: monospace; width: 25%; text-align: right; font-size: 14px; padding-right: 20px; }
+        .price { 
+            font-family: monospace; 
+            font-size: 15px; 
+            text-align: right; 
+            padding-right: 30px; /* Separación del botón */
+        }
+        .signal-wrapper {
+            display: flex;
+            justify-content: flex-end; /* Alinea el botón a la derecha */
+        }
         .signal {
-            width: 25%;
+            width: 100%;
+            max-width: 130px; /* Evita que el botón se estire */
             text-align: center;
             font-weight: bold;
-            padding: 5px 8px;
+            padding: 6px 0;
             border-radius: 4px;
             font-size: 11px;
             letter-spacing: 0.5px;
@@ -72,38 +85,52 @@
     </div>
 
     <div id="monitor">
-        <!-- Precios Oficiales de Cierre de Mercado -->
+        <!-- Fila EURUSD -->
         <div class="row">
             <div class="pair-info">
                 <div class="pair-name">EURUSD</div>
                 <div class="session-info">Estructura Fija</div>
             </div>
             <div class="price">1.16419</div>
-            <div class="signal bajista">MSS BAJISTA</div>
+            <div class="signal-wrapper">
+                <div class="signal bajista">MSS BAJISTA</div>
+            </div>
         </div>
+        
+        <!-- Fila GBPUSD -->
         <div class="row">
             <div class="pair-info">
                 <div class="pair-name">GBPUSD</div>
                 <div class="session-info">Estructura Fija</div>
             </div>
             <div class="price">1.31175</div>
-            <div class="signal bajista">MSS BAJISTA</div>
+            <div class="signal-wrapper">
+                <div class="signal bajista">MSS BAJISTA</div>
+            </div>
         </div>
+        
+        <!-- Fila AUDUSD -->
         <div class="row">
             <div class="pair-info">
                 <div class="pair-name">AUDUSD</div>
                 <div class="session-info">Estructura Fija</div>
             </div>
             <div class="price">0.66550</div>
-            <div class="signal alcista">MSS ALCISTA</div>
+            <div class="signal-wrapper">
+                <div class="signal alcista">MSS ALCISTA</div>
+            </div>
         </div>
+        
+        <!-- Fila XAUUSD -->
         <div class="row">
             <div class="pair-info">
                 <div class="pair-name">XAUUSD</div>
                 <div class="session-info">Estructura Fija</div>
             </div>
             <div class="price">2514.38</div>
-            <div class="signal bajista">MSS BAJISTA</div>
+            <div class="signal-wrapper">
+                <div class="signal bajista">MSS BAJISTA</div>
+            </div>
         </div>
     </div>
 
