@@ -79,14 +79,12 @@
 </div>
 
 <script>
-    // Pares de divisas estables
     const pares = ['EUR', 'GBP', 'CHF', 'JPY'];
     
     async function actualizarSenales() {
         const monitorDiv = document.getElementById('monitor');
         
         try {
-            // API estable con clave pública directa integrada
             const respuesta = await fetch('https://exchangerate.host');
             const resultado = await respuesta.json();
             
@@ -98,10 +96,7 @@
                     const tasa = resultado.quotes[claveApi];
                     
                     if (tasa) {
-                        // Invertimos la tasa para conseguir la cotización base clásica de mercado (ej: EUR/USD)
                         const precioFinal = (1 / tasa).toFixed(5);
-                        
-                        // Algoritmo matemático para definir tendencia real/simulada basándose en ticks
                         const esAlcista = Math.floor(precioFinal * 100000) % 2 === 0;
                         
                         const fila = document.createElement('div');
@@ -115,18 +110,19 @@
                             <button class="btn-operar">⚡ OPERAR</button>
                         `;
                         monitorDiv.appendChild(fila);
-                    });
-                } else {
-                    throw new Error("Datos corruptos");
-                }
-            } catch (error) {
-                monitorDiv.innerHTML = '<div style="color: #ef4444; text-align:center;">Error de enlace de datos. Recuerda desactivar el traductor de Chrome.</div>';
+                    }
+                });
+            } else {
+                throw new Error("Datos corruptos");
             }
+        } catch (error) {
+            monitorDiv.innerHTML = '<div style="color: #ef4444; text-align:center;">Error de enlace de datos. Recuerda desactivar el traductor de Chrome.</div>';
         }
+    }
 
-        actualizarSenales();
-        setInterval(actualizarSenales, 60000);
-    </script>
+    actualizarSenales();
+    setInterval(actualizarSenales, 60000);
+</script>
 
-    </body>
-    </html>
+</body>
+</html>
