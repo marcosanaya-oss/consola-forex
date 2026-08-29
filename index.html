@@ -95,7 +95,6 @@
         document.getElementById('current-session').innerText = obtenerSesionActual();
         
         try {
-            // API pública alternativa directa de tasas de cambio estables con base USD
             const respuesta = await fetch('https://exchangerate-api.com');
             const datos = await respuesta.json();
             
@@ -105,10 +104,7 @@
                 pares.forEach(par => {
                     const tasa = datos.rates[par];
                     if (tasa) {
-                        // Conseguir el precio clásico de cotización inversa de mercado (ej: EUR/USD)
                         const precioFinal = (1 / tasa).toFixed(5);
-                        
-                        // Determinación analítica basada en el último dígito para propósitos visuales
                         const esAlcista = Math.floor(precioFinal * 100000) % 2 === 0;
                         
                         const fila = document.createElement('div');
@@ -124,7 +120,7 @@
                             </div>
                         `;
                         monitorDiv.appendChild(fila);
-                    });
+                    }
                 });
             }
         } catch (error) {
