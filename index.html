@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FX-CORE | Terminal de Señales v16</title>
+    <title>FX-CORE | Terminal de Señales v16.1</title>
     <style>
         body {
             background-color: #0b0f19;
@@ -66,7 +66,7 @@
 
 <div class="container">
     <div class="header">
-        <span>[FX-CORE] MATRIZ INSTITUCIONAL + ALERTAS TELEGRAM V16</span>
+        <span>[FX-CORE] MATRIZ INSTITUCIONAL + ALERTAS TELEGRAM V16.1</span>
         <span class="session-badge" id="current-session">MERCADO CERRADO</span>
     </div>
 
@@ -97,8 +97,8 @@
 </div>
 
 <script>
-    // ⚙️ CONFIGURACIÓN TELEGRAM (REEMPLAZA ESTOS DOS VALORES ENTRE LAS COMILLAS)
-    const TELEGRAM_TOKEN = '8700331188:AAFEfsD_9aseQl30PctIh_WNLAvZWGXc4yU'; 
+    // ⚙️ CONFIGURACIÓN TELEGRAM
+    const TELEGRAM_TOKEN = '8700331188:AAFEfsD_9aseQ130PctIh_WNLAZvwGXc4yU'; 
     const TELEGRAM_CHAT_ID = '1375812459';
 
     const mercado = {
@@ -178,7 +178,7 @@
                     if (Math.random() > 0.3) { 
                         senalStatus = 'MSS ALCISTA'; 
                         claseEstilo = 'alcista'; 
-                        if (data.tendenciaAnterior !== 'ALCISTA' && !esMercatedoCerrado) {
+                        if (data.tendenciaAnterior !== 'ALCISTA' && !esMercadoCerrado) {
                             data.tendenciaAnterior = 'ALCISTA';
                             dispararAlertaTelegram(`🚀 *[FX-CORE]* MSS ALCISTA CONFIRMADO\n📈 *Activo:* ${par}\n🎯 *Precio:* ${data.precio.toFixed(esOro ? 2 : esDxy ? 3 : 5)}\n🛡️ _Filtro SMT validado de forma limpia_`);
                         }
@@ -207,3 +207,4 @@
                 <div class="pair-info">
                     <div class="pair-name">${par}</div>
                     <div class="session-info">${esMercadoCerrado ? 'Cierre Fijo' : 'SMC Filter'}</div>
+                </div>
