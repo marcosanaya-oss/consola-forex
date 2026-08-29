@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FX-CORE | Terminal de Señales v16.2</title>
+    <title>FX-CORE | Terminal de Señales v15.2</title>
     <style>
         body {
             background-color: #0b0f19;
@@ -52,22 +52,21 @@
         .correlation { font-family: monospace; font-size: 13px; text-align: center; font-weight: bold; }
         .corr-directa { color: #34d399; }
         .corr-inversa { color: #f87171; }
-        .corr-divergente { color: #fbbf24; background: #78350f; padding: 2px 4px; border-radius: 4px; animation: pulse 1.5s infinite; }
         .signal-wrapper { display: flex; justify-content: flex-end; }
         .signal { width: 100%; max-width: 120px; text-align: center; font-weight: bold; padding: 6px 0; border-radius: 4px; font-size: 11px; letter-spacing: 0.5px; }
         .alcista { background-color: #065f46; color: #34d399; border: 1px solid #059669; }
         .bajista { background-color: #ef4444; color: #ffffff; border: 1px solid #b91c1c; font-weight: 900; }
         .neutral { background-color: #374151; color: #9ca3af; border: 1px solid #4b5563; }
         .status { font-size: 11px; color: #9ca3af; text-align: center; margin-top: 15px; }
-        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
     </style>
 </head>
 <body>
 
+<!-- MONITOR DE MERCADO -->
 <div class="container">
     <div class="header">
-        <span>[FX-CORE] MATRIZ INSTITUCIONAL + ALERTAS TELEGRAM V16.2</span>
-        <span class="session-badge" id="current-session">MERCADO CERRADO</span>
+        <span>[FX-CORE] MATRIZ INSTITUCIONAL SMC V15.2</span>
+        <span class="session-badge" id="current-session">DETECTANDO SESIÓN...</span>
     </div>
 
     <div class="row" style="font-size: 11px; color: #9ca3af; font-weight: bold; border-bottom: 2px solid #1f2937; padding-bottom: 5px;">
@@ -78,14 +77,15 @@
     </div>
 
     <div id="monitor">
-        <!-- Inyección de datos dinámicos -->
+        <!-- Inyección de datos limpia -->
     </div>
 
     <div class="status">
-        Filtro Antifalsas Rupturas SMT + Alertas Push de Telegram Activas
+        Filtro de Falsas Rupturas activo mediante escaneo de Order Blocks & MSS
     </div>
 </div>
 
+<!-- CALENDARIO MACROECONÓMICO -->
 <div class="container" style="margin-top: 20px;">
     <div class="header" style="color: #fbbf24;">
         <span>⚠️ CALENDARIO ECONÓMICO GLOBAL</span>
@@ -97,36 +97,23 @@
 </div>
 
 <script>
-    // ⚙️ CONFIGURACIÓN ENMASCARADA PARA EVITAR EL BLOQUEO DE GITGUARDIAN
-    const p1 = '8700331188';
-    const p2 = 'AAFEfsD_9aseQ130PctIh_WNLAZvwGXc4yU';
-    const TELEGRAM_TOKEN = `${p1}:${p2}`; 
-    const TELEGRAM_CHAT_ID = '1375812459';
-
     const mercado = {
         'DXY': { precio: 104.250, base: 104.250, obAlta: 104.850, obBaja: 103.900, tendenciaAnterior: 'ALCISTA', tipo: 'MATRIZ' },
         'EURUSD': { precio: 1.15883, base: 1.15883, obAlta: 1.16772, obBaja: 1.16422, tendenciaAnterior: 'BAJISTA', tipo: 'INVERSA' },
         'GBPUSD': { precio: 1.35347, base: 1.35347, obAlta: 1.36514, obBaja: 1.35831, tendenciaAnterior: 'BAJISTA', tipo: 'INVERSA' },
-        'USDCHF': { precio: 0.80938, base: 0.80938, obAlta: 0.80628, obBaja: 0.80107, tendenciaAnterior: 'ALCISTA', tipo: 'DIRECTA' },
+        'USDCHF': { precio: 0.80938, base: 0.80938, obAlta: 0.80628, obBga: 0.80107, tendenciaAnterior: 'ALCISTA', tipo: 'DIRECTA' },
         'XAUUSD': { precio: 2514.38, base: 2514.38, obAlta: 2530.00, obBaja: 2508.00, tendenciaAnterior: 'BAJISTA', tipo: 'INVERSA' }
     };
-
-    async function dispararAlertaTelegram(msg) {
-        const url = `https://telegram.org{TELEGRAM_TOKEN}/sendMessage`;
-        try {
-            await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg, parse_mode: 'Markdown' })
-            });
-        } catch (e) { console.error(e); }
-    }
 
     function obtenerSesionActual() {
         const ahora = new Date();
         const dia = ahora.getDay(); 
         const horaUTC = ahora.getUTCHours();
-        if (dia === 6 || (dia === 0 && horaUTC < 21)) return 'MERCADO CERRADO (FIN DE SEMANA)';
+
+        if (dia === 6 || (dia === 0 && horaUTC < 21)) {
+            return 'MERCADO CERRADO (FIN DE SEMANA)';
+        }
+        
         if (horaUTC >= 7 && horaUTC < 15) return 'SESIÓN: LONDRES (EXPANSIÓN)';
         if (horaUTC >= 13 && horaUTC < 21) return 'SESIÓN: NUEVA YORK (VOLATILIDAD)';
         return 'SESIÓN: ASIA (RANGO ACUMULATIVO)';
@@ -139,7 +126,6 @@
         monitorDiv.innerHTML = ''; 
 
         const esMercadoCerrado = sesionActual === 'MERCADO CERRADO (FIN DE SEMANA)';
-        const dxySube = mercado['DXY'].precio >= mercado['DXY'].base;
 
         Object.keys(mercado).forEach(par => {
             const data = mercado[par];
@@ -151,56 +137,10 @@
                 data.precio += ruido;
             }
 
-            let stringCorrelacion = "100%";
-            let claseCorrelacion = "corr-directa";
-
-            if (!esDxy) {
-                const parSube = data.precio >= data.base;
-                if (data.tipo === 'INVERSA') {
-                    if (dxySube !== parSube) { stringCorrelacion = "-96%"; claseCorrelacion = "corr-inversa"; }
-                    else { stringCorrelacion = "SMT DIV"; claseCorrelacion = "corr-divergente"; }
-                } else if (data.tipo === 'DIRECTA') {
-                    if (dxySube === parSube) { stringCorrelacion = "+94%"; claseCorrelacion = "corr-directa"; }
-                    else { stringCorrelacion = "SMT DIV"; claseCorrelacion = "corr-divergente"; }
-                }
-            } else {
-                stringCorrelacion = "MATRIZ";
-                claseCorrelacion = "corr-directa";
-            }
-
-            let senalStatus = 'ESPERANDO MSS';
-            let claseEstilo = 'neutral';
-
-            if (stringCorrelacion === "SMT DIV" && !esMercadoCerrado) {
-                senalStatus = "⚠ SMT TRAP";
-                claseEstilo = "neutral";
-            } else {
-                if (data.precio >= data.obAlta) {
-                    if (Math.random() > 0.3) { 
-                        senalStatus = 'MSS ALCISTA'; 
-                        claseEstilo = 'alcista'; 
-                        if (data.tendenciaAnterior !== 'ALCISTA' && !esMercadoCerrado) {
-                            data.tendenciaAnterior = 'ALCISTA';
-                            dispararAlertaTelegram(`🚀 *[FX-CORE]* MSS ALCISTA CONFIRMADO\n📈 *Activo:* ${par}\n🎯 *Precio:* ${data.precio.toFixed(esOro ? 2 : esDxy ? 3 : 5)}\n🛡️ _Filtro SMT validado de forma limpia_`);
-                        }
-                    } else { senalStatus = 'FALSA RUPTURA'; claseEstilo = 'neutral'; }
-                } 
-                else if (data.precio <= data.obBaja) {
-                    if (Math.random() > 0.3) { 
-                        senalStatus = 'MSS BAJISTA'; 
-                        claseEstilo = 'bajista'; 
-                        if (data.tendenciaAnterior !== 'BAJISTA' && !esMercadoCerrado) {
-                            data.tendenciaAnterior = 'BAJISTA';
-                            dispararAlertaTelegram(`🚨 *[FX-CORE]* MSS BAJISTA CONFIRMADO\n📉 *Activo:* ${par}\n🎯 *Precio:* ${data.precio.toFixed(esOro ? 2 : esDxy ? 3 : 5)}\n⚠️ _Quiebre estructural e institucional confirmado_`);
-                        }
-                    } else { senalStatus = 'FALSA RUPTURA'; claseEstilo = 'neutral'; }
-                } else {
-                    if (data.tendenciaAnterior !== 'NEUTRAL') {
-                        senalStatus = `MSS ${data.tendenciaAnterior}`;
-                        claseEstilo = data.tendenciaAnterior.toLowerCase() === 'alcista' ? 'alcista' : 'bajista';
-                    }
-                }
-            }
+            let stringCorrelacion = !esDxy ? (data.tipo === 'INVERSA' ? "-96%" : "+94%") : "MATRIZ";
+            let claseCorrelacion = data.tipo === 'INVERSA' ? "corr-inversa" : "corr-directa";
+            let senalStatus = data.tendenciaAnterior === 'ALCISTA' ? 'MSS ALCISTA' : 'MSS BAJISTA';
+            let claseEstilo = data.tendenciaAnterior.toLowerCase();
 
             const fila = document.createElement('div');
             fila.className = 'row';
@@ -208,3 +148,20 @@
                 <div class="pair-info">
                     <div class="pair-name">${par}</div>
                     <div class="session-info">${esMercadoCerrado ? 'Cierre Fijo' : 'SMC Filter'}</div>
+                </div>
+                <div class="price">${data.precio.toFixed(esOro ? 2 : esDxy ? 3 : 5)}</div>
+                <div class="correlation ${claseCorrelacion}">${stringCorrelacion}</div>
+                <div class="signal-wrapper">
+                    <div class="signal ${claseEstilo}">${senalStatus}</div>
+                </div>
+            `;
+            monitorDiv.appendChild(fila);
+        });
+    }
+
+    procesarEstructura();
+    setInterval(procesarEstructura, 3500);
+</script>
+
+</body>
+</html>
