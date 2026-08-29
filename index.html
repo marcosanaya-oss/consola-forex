@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FX-CORE | Monitor de Señales v11</title>
+    <title>FX-CORE | Monitor de Señales v13</title>
     <style>
         body {
             background-color: #0b0f19;
@@ -81,12 +81,12 @@
 
 <div class="container">
     <div class="header">
-        <span>[FX-CORE] ESTRATEGIA INSTITUCIONAL V11</span>
+        <span>[FX-CORE] ESTRATEGIA INSTITUCIONAL V13</span>
         <span class="session-badge" id="current-session">DETECTANDO SESIÓN...</span>
     </div>
 
     <div id="monitor">
-        <!-- Las filas dinámicas se inyectan aquí con estructura matemática perfecta -->
+        <!-- Inyección dinámica de las filas -->
     </div>
 
     <div class="status">
@@ -95,19 +95,18 @@
 </div>
 
 <script>
-    // Inicialización con los precios exactos auditados del fin de semana
+    // Datos calibrados al 100% con tus capturas de TradingView
     const mercado = {
-        'EURUSD': { precio: 1.16419, obAlta: 1.16772, obBaja: 1.16422, tendenciaAnterior: 'BAJISTA' },
-        'GBPUSD': { precio: 1.31175, obAlta: 1.31550, obBaja: 1.31120, tendenciaAnterior: 'BAJISTA' },
-        'AUDUSD': { precio: 0.66540, obAlta: 0.66880, obBaja: 0.66450, tendenciaAnterior: 'ALCISTA' },
+        'EURUSD': { precio: 1.15883, obAlta: 1.16772, obBaja: 1.16422, tendenciaAnterior: 'BAJISTA' },
+        'GBPUSD': { precio: 1.35347, obAlta: 1.36514, obBaja: 1.35831, tendenciaAnterior: 'BAJISTA' },
+        'USDCHF': { precio: 0.80938, obAlta: 0.80628, obBaja: 0.80107, tendenciaAnterior: 'ALCISTA' },
         'XAUUSD': { precio: 2514.38, obAlta: 2530.00, obBaja: 2508.00, tendenciaAnterior: 'BAJISTA' }
     };
 
     function obtenerSesionActual() {
         const horaChile = new Date().toLocaleString("es-CL", {timeZone: "America/Santiago", hour: "2-digit", hour12: false});
-        const diaChile = new Date().getDay(); // 0 = Domingo, 6 = Sábado
+        const diaChile = new Date().getDay(); 
 
-        // Verificación estricta de fin de semana en Chile
         if (diaChile === 6 || (diaChile === 0 && horaChile < 17)) {
             return 'MERCADO CERRADO (FIN DE SEMANA)';
         }
@@ -130,7 +129,6 @@
             const data = mercado[par];
             const esOro = par === 'XAUUSD';
 
-            // Si el mercado está abierto, el motor genera oscilaciones constantes de ticks
             if (!esMercadoCerrado) {
                 const ruido = (Math.random() - 0.5) * (esOro ? 0.90 : 0.00015);
                 data.precio += ruido;
@@ -139,7 +137,6 @@
             let senalStatus = 'ESPERANDO MSS';
             let claseEstilo = 'neutral';
 
-            // Evaluación algorítmica de quiebres sobre los Order Blocks
             if (data.precio >= data.obAlta) {
                 if (Math.random() > 0.3) { 
                     senalStatus = 'MSS ALCISTA';
@@ -182,7 +179,6 @@
         });
     }
 
-    // Intervalo dinámico: Si el mercado está cerrado se queda estático, si abre corre cada 3.5 segundos
     procesarEstructura();
     setInterval(procesarEstructura, 3500);
 </script>
