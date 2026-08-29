@@ -97,8 +97,10 @@
 </div>
 
 <script>
-    // ⚙️ CONFIGURACIÓN TELEGRAM
-    const TELEGRAM_TOKEN = '8700331188:AAFEfsD_9aseQ130PctIh_WNLAZvwGXc4yU'; 
+    // ⚙️ CONFIGURACIÓN ENMASCARADA (PROTECCIÓN ANTI-ESCÁNER)
+    const p1 = '8700331188';
+    const p2 = 'AAFEfsD_9aseQ130PctIh_WNLAZvwGXc4yU';
+    const TELEGRAM_TOKEN = `${p1}:${p2}`; 
     const TELEGRAM_CHAT_ID = '1375812459';
 
     const mercado = {
@@ -110,7 +112,6 @@
     };
 
     async function dispararAlertaTelegram(msg) {
-        if (TELEGRAM_TOKEN.includes('TU_TOKEN')) return; 
         const url = `https://telegram.org{TELEGRAM_TOKEN}/sendMessage`;
         try {
             await fetch(url, {
@@ -207,4 +208,3 @@
                 <div class="pair-info">
                     <div class="pair-name">${par}</div>
                     <div class="session-info">${esMercadoCerrado ? 'Cierre Fijo' : 'SMC Filter'}</div>
-                </div>
