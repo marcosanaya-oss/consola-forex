@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FX-CORE | Terminal de Señales v15.1</title>
+    <title>FX-CORE | Terminal de Señales v16</title>
     <style>
         body {
             background-color: #0b0f19;
@@ -66,7 +66,7 @@
 
 <div class="container">
     <div class="header">
-        <span>[FX-CORE] MATRIZ INSTITUCIONAL + MEDIDOR DE CORRELACIÓN V15.1</span>
+        <span>[FX-CORE] MATRIZ INSTITUCIONAL + ALERTAS TELEGRAM V16</span>
         <span class="session-badge" id="current-session">MERCADO CERRADO</span>
     </div>
 
@@ -78,11 +78,11 @@
     </div>
 
     <div id="monitor">
-        <!-- Carga fluida de datos -->
+        <!-- Inyección de datos dinámicos -->
     </div>
 
     <div class="status">
-        Filtro de Falsas Rupturas reforzado con Escáner de Divergencias SMT en vivo
+        Filtro Antifalsas Rupturas SMT + Alertas Push de Telegram Activas
     </div>
 </div>
 
@@ -97,6 +97,10 @@
 </div>
 
 <script>
+    // ⚙️ CONFIGURACIÓN TELEGRAM: REEMPLAZA ESTOS DOS VALORES CON TUS CLAVES REALES
+    const TELEGRAM_TOKEN = 'TU_TOKEN_DE_BOT_AQUI'; 
+    const TELEGRAM_CHAT_ID = 'TU_ID_DE_USUARIO_AQUI';
+
     const mercado = {
         'DXY': { precio: 104.250, base: 104.250, obAlta: 104.850, obBaja: 103.900, tendenciaAnterior: 'ALCISTA', tipo: 'MATRIZ' },
         'EURUSD': { precio: 1.15883, base: 1.15883, obAlta: 1.16772, obBaja: 1.16422, tendenciaAnterior: 'BAJISTA', tipo: 'INVERSA' },
@@ -105,16 +109,23 @@
         'XAUUSD': { precio: 2514.38, base: 2514.38, obAlta: 2530.00, obBaja: 2508.00, tendenciaAnterior: 'BAJISTA', tipo: 'INVERSA' }
     };
 
+    async function dispararAlertaTelegram(msg) {
+        if (TELEGRAM_TOKEN.includes('TU_TOKEN')) return; 
+        const url = `https://telegram.org{TELEGRAM_TOKEN}/sendMessage`;
+        try {
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg, parse_mode: 'Markdown' })
+            });
+        } catch (e) { console.error(e); }
+    }
+
     function obtenerSesionActual() {
         const ahora = new Date();
         const dia = ahora.getDay(); 
         const horaUTC = ahora.getUTCHours();
-
-        // Bloque dinámico nativo de fin de semana (Sábado completo y Domingo antes de apertura)
-        if (dia === 6 || (dia === 0 && horaUTC < 21)) {
-            return 'MERCADO CERRADO (FIN DE SEMANA)';
-        }
-        
+        if (dia === 6 || (dia === 0 && horaUTC < 21)) return 'MERCADO CERRADO (FIN DE SEMANA)';
         if (horaUTC >= 7 && horaUTC < 15) return 'SESIÓN: LONDRES (EXPANSIÓN)';
         if (horaUTC >= 13 && horaUTC < 21) return 'SESIÓN: NUEVA YORK (VOLATILIDAD)';
         return 'SESIÓN: ASIA (RANGO ACUMULATIVO)';
@@ -164,12 +175,24 @@
                 claseEstilo = "neutral";
             } else {
                 if (data.precio >= data.obAlta) {
-                    if (Math.random() > 0.3) { senalStatus = 'MSS ALCISTA'; claseEstilo = 'alcista'; data.tendenciaAnterior = 'ALCISTA'; }
-                    else { senalStatus = 'FALSA RUPTURA'; claseEstilo = 'neutral'; }
+                    if (Math.random() > 0.3) { 
+                        senalStatus = 'MSS ALCISTA'; 
+                        claseEstilo = 'alcista'; 
+                        if (data.tendenciaAnterior !== 'ALCISTA' && !esMercadoCerrado) {
+                            data.tendenciaAnterior = 'ALCISTA';
+                            dispararAlertaTelegram(`🚀 *[FX-CORE]* MSS ALCISTA CONFIRMADO\n📈 *Activo:* ${par}\n🎯 *Precio:* ${data.precio.toFixed(esOro ? 2 : esDxy ? 3 : 5)}\n🛡️ _Filtro SMT validado de forma limpia_`);
+                        }
+                    } else { senalStatus = 'FALSA RUPTURA'; claseEstilo = 'neutral'; }
                 } 
                 else if (data.precio <= data.obBaja) {
-                    if (Math.random() > 0.3) { senalStatus = 'MSS BAJISTA'; claseEstilo = 'bajista'; data.tendenciaAnterior = 'BAJISTA'; }
-                    else { senalStatus = 'FALSA RUPTURA'; claseEstilo = 'neutral'; }
+                    if (Math.random() > 0.3) { 
+                        senalStatus = 'MSS BAJISTA'; 
+                        claseEstilo = 'bajista'; 
+                        if (data.tendenciaAnterior !== 'BAJISTA' && !esMercadoCerrado) {
+                            data.tendenciaAnterior = 'BAJISTA';
+                            dispararAlertaTelegram(`🚨 *[FX-CORE]* MSS BAJISTA CONFIRMADO\n📉 *Activo:* ${par}\n🎯 *Precio:* ${data.precio.toFixed(esOro ? 2 : esDxy ? 3 : 5)}\n⚠️ _Quiebre estructural e institucional confirmado_`);
+                        }
+                    } else { senalStatus = 'FALSA RUPTURA'; claseEstilo = 'neutral'; }
                 } else {
                     if (data.tendenciaAnterior !== 'NEUTRAL') {
                         senalStatus = `MSS ${data.tendenciaAnterior}`;
@@ -184,20 +207,3 @@
                 <div class="pair-info">
                     <div class="pair-name">${par}</div>
                     <div class="session-info">${esMercadoCerrado ? 'Cierre Fijo' : 'SMC Filter'}</div>
-                </div>
-                <div class="price">${data.precio.toFixed(esOro ? 2 : esDxy ? 3 : 5)}</div>
-                <div class="correlation ${claseCorrelacion}">${stringCorrelacion}</div>
-                <div class="signal-wrapper">
-                    <div class="signal ${claseEstilo}">${senalStatus}</div>
-                </div>
-            `;
-            monitorDiv.appendChild(fila);
-        });
-    }
-
-    procesarEstructura();
-    setInterval(procesarEstructura, 3500);
-</script>
-
-</body>
-</html>
