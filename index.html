@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FX-CORE | Terminal Autónoma v15.7</title>
+    <title>FX-CORE | Terminal TradingView Realtime</title>
     <style>
-        /* --- ESTILOS GENERALES Y PANEL OSCURO --- */
+        /* --- ESTILOS GENERALES INSTITUCIONALES --- */
         body {
             background-color: #0b0f19;
             color: #ffffff;
@@ -22,7 +22,7 @@
 
         .container {
             width: 100%;
-            max-width: 850px;
+            max-width: 950px;
             background: #131a26;
             border-radius: 12px;
             padding: 25px;
@@ -75,89 +75,51 @@
             border-color: #38bdf8;
         }
 
-        /* --- PANELES DE DATOS EN TIEMPO REAL --- */
-        .market-data {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .data-card {
-            background: #1e293b;
-            padding: 15px;
+        /* --- CONTENEDOR DE GRÁFICOS Y ANÁLISIS --- */
+        .chart-wrapper {
+            width: 100%;
+            height: 450px;
+            background: #1e222d;
             border-radius: 8px;
-            text-align: center;
+            overflow: hidden;
             border: 1px solid #334155;
+            margin-bottom: 20px;
         }
 
-        .data-card label {
+        .chart-container {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .chart-container.active {
             display: block;
-            font-size: 0.8rem;
-            color: #94a3b8;
-            margin-bottom: 5px;
-            text-transform: uppercase;
         }
 
-        .data-card value {
-            font-size: 1.8rem;
-            font-weight: bold;
-            font-family: monospace;
-        }
-
-        /* --- PANELES DE ALERTAS DINÁMICAS (MSS) --- */
-        #alert-panel {
+        /* --- PANEL DE SEÑALES INTELIGENTES (ALCISTA / BAJISTA) --- */
+        .signals-panel {
+            background: #1e222d;
             border-radius: 8px;
-            padding: 25px;
+            padding: 15px;
+            border: 1px solid #334155;
             text-align: center;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            border: 1px solid transparent;
         }
 
-        .alert-neutral {
-            background-color: #1e222d;
-            border-left: 6px solid #707a8a;
-            color: #94a3b8;
-        }
-
-        .alert-bullish {
-            background-color: rgba(14, 203, 129, 0.1);
-            border-left: 6px solid #0ecb81;
-            border-color: rgba(14, 203, 129, 0.2);
-            color: #0ecb81;
-            animation: pulse 2s infinite;
-        }
-
-        .alert-bearish {
-            background-color: rgba(246, 70, 93, 0.1);
-            border-left: 6px solid #f6465d;
-            border-color: rgba(246, 70, 93, 0.2);
-            color: #f6465d;
-            animation: pulse 2s infinite;
-        }
-
-        .alert-title {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .alert-details {
+        .panel-title {
             font-size: 1rem;
-            font-weight: normal;
-            color: #ffffff;
-            margin-top: 10px;
-            line-height: 1.4;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
         }
 
-        @keyframes pulse {
-            0% { opacity: 0.9; }
-            50% { opacity: 1; }
-            100% { opacity: 0.9; }
+        /* Widget Técnico de TradingView integrado */
+        .badge-grid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 120px;
         }
     </style>
 </head>
@@ -166,7 +128,7 @@
     <div class="container">
         <header>
             <h1>FX-CORE TERMINAL</h1>
-            <!-- Selectores dinámicos de divisas -->
+            <!-- Selectores de divisas -->
             <div class="selector-box">
                 <button id="btn-EURUSD" class="pair-btn active" onclick="cambiarPar('EURUSD')">EUR/USD</button>
                 <button id="btn-GBPUSD" class="pair-btn" onclick="cambiarPar('GBPUSD')">GBP/USD</button>
@@ -174,118 +136,46 @@
             </div>
         </header>
 
-        <!-- Datos de Mercado -->
-        <div class="market-data">
-            <div class="data-card">
-                <label>Precio Actual</label>
-                <value id="current-price">Conectando...</value>
+        <!-- Área de Gráficos Avanzados en Vivo -->
+        <div class="chart-wrapper">
+            <!-- EURUSD CHART -->
+            <div id="chart-EURUSD" class="chart-container active">
+                <iframe src="https://tradingview.com" width="100%" height="100%" frameborder="0" allowfullscreen scrolling="no"></iframe>
             </div>
-            <div class="data-card">
-                <label>Filtro EMA Institucional</label>
-                <value id="ema-value" style="color: #38bdf8;">Calculando...</value>
+            <!-- GBPUSD CHART -->
+            <div id="chart-GBPUSD" class="chart-container">
+                <iframe src="https://tradingview.com" width="100%" height="100%" frameborder="0" allowfullscreen scrolling="no"></iframe>
+            </div>
+            <!-- USDCHF CHART -->
+            <div id="chart-USDCHF" class="chart-container">
+                <iframe src="https://tradingview.com" width="100%" height="100%" frameborder="0" allowfullscreen scrolling="no"></iframe>
             </div>
         </div>
 
-        <!-- Consola de Alertas Estructura Shift -->
-        <div id="alert-panel" class="alert-neutral">
-            <div class="alert-title">
-                <span id="signal-type">CONECTANDO A RED DE TRADING...</span>
-            </div>
-            <div class="alert-details" id="signal-details">
-                Sincronizando flujo de mercado en tiempo real.
+        <!-- Panel de Estado Técnico e Indicador Alcista/Bajista -->
+        <div class="signals-panel">
+            <div class="panel-title">Estrategia Estructural y Sentimiento Institucional</div>
+            <div class="badge-grid">
+                <!-- Servidor seguro de TradingView que calcula la fuerza Alcista/Bajista de tus indicadores en vivo -->
+                <iframe src="https://tradingview.com" width="100%" height="160" frameborder="0" allowfullscreen scrolling="no"></iframe>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuración de almacenamiento interno optimizado
-        const parConfig = {
-            "EURUSD": { currentPrice: 1.15940, stream: "eurusdt", pricesLog: [], lastHigh: 0, lastLow: Infinity, currentEma: 0 },
-            "GBPUSD": { currentPrice: 1.35320, stream: "gbpusdt", pricesLog: [], lastHigh: 0, lastLow: Infinity, currentEma: 0 },
-            "USDCHF": { currentPrice: 0.81150, stream: "chfusdt", pricesLog: [], lastHigh: 0, lastLow: Infinity, currentEma: 0 }
-        };
+        function cambiarPar(par) {
+            // Cambiar Pestañas Activas de los Botones
+            document.querySelectorAll('.pair-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${par}`).classList.add('active');
 
-        let parActivo = "EURUSD";
-        const maxLogLength = 20;
-        const emaPeriod = 9;
-        let usandoSimulador = false;
-        let simInterval = null;
+            // Cambiar Visibilidad del Gráfico
+            document.querySelectorAll('.chart-container').forEach(chart => chart.classList.remove('active'));
+            document.getElementById(`chart-${par}`).classList.add('active');
 
-        // --- ENLACE AL WEBSOCKET PÚBLICO ---
-        const streamPath = Object.values(parConfig).map(p => `${p.stream}@ticker`).join('/');
-        const ws = new WebSocket(`wss://://binance.com{streamPath}`);
-
-        ws.onopen = () => {
-            console.log("WebSocket conectado correctamente.");
-            inicializarInterfazUI();
-        };
-
-        ws.onmessage = (event) => {
-            const response = JSON.parse(event.data);
-            if (!response.stream) return;
-
-            // Corrección de string: Extraer el token exacto antes del símbolo '@'
-            const rawStream = response.stream.split('@')[0]; 
-            
-            Object.keys(parConfig).forEach(symbol => {
-                if (parConfig[symbol].stream === rawStream) {
-                    const changePercent = parseFloat(response.data.P) / 100;
-                    
-                    // Modificador para reflejar la cotización de divisas correctamente
-                    let finalPrice = parConfig[symbol].currentPrice;
-                    if (symbol === "USDCHF") {
-                        finalPrice = 0.81150 * (1 - changePercent);
-                    } else if (symbol === "EURUSD") {
-                        finalPrice = 1.15940 * (1 + changePercent);
-                    } else if (symbol === "GBPUSD") {
-                        finalPrice = 1.35320 * (1 + changePercent);
-                    }
-                    
-                    procesarMotorTrading(symbol, finalPrice);
-                }
-            });
-        };
-
-        ws.onerror = (err) => {
-            console.warn("Error o bloqueo en WebSocket. Activando motor autónomo de respaldo...", err);
-            activarModoAutonomo();
-        };
-
-        // --- PLAN DE RESPALDO: ACTIVACIÓN AUTÓNOMA SI EL WEBSOCKET TARDA ---
-        setTimeout(() => {
-            const currentVal = document.getElementById('current-price').innerText;
-            if (currentVal === "Conectando..." || currentVal === "") {
-                console.log("Tiempo de espera agotado. Inicializando simulación fluida.");
-                activarModoAutonomo();
-            }
-        }, 2000);
-
-        function activarModoAutonomo() {
-            if (usandoSimulador) return;
-            usandoSimulador = true;
-            inicializarInterfazUI();
-
-            simInterval = setInterval(() => {
-                Object.keys(parConfig).forEach(symbol => {
-                    // Simulación premium: Genera fluctuaciones realistas de mercado (0.01% - 0.03%)
-                    const randomMove = (Math.random() - 0.5) * 0.0003;
-                    const simulatedPrice = parConfig[symbol].currentPrice * (1 + randomMove);
-                    parConfig[symbol].currentPrice = simulatedPrice;
-                    
-                    procesarMotorTrading(symbol, simulatedPrice);
-                });
-            }, 400); // Actualizaciones rápidas en milisegundos
+            // Actualizar dinámicamente el Widget Técnico Inferior (Alcista/Bajista) sin recargar la página
+            const badgeGrid = document.querySelector('.badge-grid');
+            badgeGrid.innerHTML = `<iframe src="https://tradingview.com{par}&interval=5m&width=100%25&height=160&showIntervalTabs=false&isTransparent=true&theme=dark" width="100%" height="160" frameborder="0" allowfullscreen scrolling="no"></iframe>`;
         }
-
-        function inicializarInterfazUI() {
-            document.getElementById('signal-type').innerText = "MONITOREANDO ACCIÓN DEL PRECIO";
-            document.getElementById('signal-details').innerText = "Analizando rupturas estructurales y bloques de órdenes activos.";
-            document.getElementById('current-price').innerText = parConfig[parActivo].currentPrice.toFixed(5);
-        }
-
-        // --- MOTOR DE TRADING INSTITUCIONAL CENTRALIZADO ---
-        function procesarMotorTrading(symbol, price) {
-            const data = parConfig[symbol];
-            data.pricesLog.push(price);
-            if (data.pricesLog.length > maxLogLength) data.pricesLog.shift();
-
+    </script>
+</body>
+</html>
