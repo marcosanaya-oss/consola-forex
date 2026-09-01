@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FX-CORE | Terminal de Señales v15.2</title>
+    <title>FX-CORE | Terminal Multiactivo v15.3</title>
     <style>
         /* --- ESTILOS GENERALES Y PANEL OSCURO --- */
         body {
@@ -13,232 +13,278 @@
             margin: 0;
             padding: 20px;
             display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
         .container {
-            max-width: 750px;
             width: 100%;
-            background: #111827;
-            border: 1px solid #1f2937;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            max-width: 850px;
+            background: #131a26;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            border: 1px solid #1e293b;
         }
 
-        .header {
+        header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #1f2937;
+            border-bottom: 1px solid #1e293b;
             padding-bottom: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
-        .title {
-            font-size: 14px;
+        h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: #38bdf8;
+            letter-spacing: 1px;
+        }
+
+        /* --- SELECTOR DE DIVISAS --- */
+        .selector-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .pair-btn {
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
             font-weight: bold;
-            color: #10b981;
-            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
         }
 
-        .session-badge {
-            background-color: #1e3a8a;
-            color: #3b82f6;
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-weight: bold;
+        .pair-btn:hover {
+            border-color: #38bdf8;
+            color: #ffffff;
         }
 
-        /* --- ESTRUCTURA DE LA TABLA --- */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
+        .pair-btn.active {
+            background: #38bdf8;
+            color: #0b0f19;
+            border-color: #38bdf8;
         }
 
-        th {
-            color: #6b7280;
-            font-size: 11px;
-            text-transform: uppercase;
-            padding: 10px;
-            border-bottom: 1px solid #1f2937;
+        /* --- PANELES DE DATOS EN TIEMPO REAL --- */
+        .market-data {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
         }
 
-        td {
-            padding: 14px 10px;
-            font-size: 14px;
-            border-bottom: 1px solid #111827;
+        .data-card {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #334155;
         }
 
-        .activo-name {
-            font-weight: bold;
-        }
-
-        .sub-text {
+        .data-card label {
             display: block;
-            font-size: 10px;
-            color: #4b5563;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 5px;
+            text-transform: uppercase;
         }
 
-        .precio-celda {
-            font-family: 'Courier New', Courier, monospace;
+        .data-card value {
+            font-size: 1.8rem;
             font-weight: bold;
-            transition: color 0.2s ease;
+            font-family: monospace;
         }
 
-        /* --- VARIACIONES DE PRECIO DINÁMICAS --- */
-        .sube { color: #10b981 !important; }
-        .baja { color: #ef4444 !important; }
-        .pos { color: #10b981; }
-        .neg { color: #ef4444; }
-        .neu { color: #6b7280; }
-
-        /* --- SEÑALES ESTRUCTURALES --- */
-        .badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 11px;
+        /* --- PANELES DE ALERTAS DINÁMICAS (MSS) --- */
+        #alert-panel {
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
             font-weight: bold;
-            text-align: center;
-            width: 90px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
         }
 
-        .alcista {
-            background-color: rgba(6, 78, 59, 0.4);
-            color: #10b981;
-            border: 1px solid #064e3b;
+        .alert-neutral {
+            background-color: #1e222d;
+            border-left: 6px solid #707a8a;
+            color: #94a3b8;
         }
 
-        .bajista {
-            background-color: rgba(127, 29, 29, 0.4);
-            color: #ef4444;
-            border: 1px solid #7f1d1d;
+        .alert-bullish {
+            background-color: rgba(14, 203, 129, 0.1);
+            border-left: 6px solid #0ecb81;
+            border-color: rgba(14, 203, 129, 0.2);
+            color: #0ecb81;
+            animation: pulse 2s infinite;
         }
 
-        .footer-note {
-            text-align: center;
-            font-size: 10px;
-            color: #4b5563;
-            margin-top: 15px;
+        .alert-bearish {
+            background-color: rgba(246, 70, 93, 0.1);
+            border-left: 6px solid #f6465d;
+            border-color: rgba(246, 70, 93, 0.2);
+            color: #f6465d;
+            animation: pulse 2s infinite;
+        }
+
+        .alert-title {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .alert-details {
+            font-size: 1rem;
+            font-weight: normal;
+            color: #ffffff;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.9; }
+            50% { opacity: 1; }
+            100% { opacity: 0.9; }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Encabezado de la Consola -->
-        <div class="header">
-            <div class="title">[FX-CORE] MATRIZ INSTITUCIONAL SMC V15.2</div>
-            <div class="session-badge">CONEXIÓN: MERCADO REAL SIMULADO</div>
+        <header>
+            <h1>FX-CORE TERMINAL</h1>
+            <!-- Selectores dinámicos de divisas -->
+            <div class="selector-box">
+                <button class="pair-btn active" onclick="cambiarPar('OANDA:EUR_USD')">EUR/USD</button>
+                <button class="pair-btn" onclick="cambiarPar('OANDA:GBP_USD')">GBP/USD</button>
+                <button class="pair-btn" onclick="cambiarPar('OANDA:USD_CHF')">USD/CHF</button>
+            </div>
+        </header>
+
+        <!-- Datos de Mercado -->
+        <div class="market-data">
+            <div class="data-card">
+                <label>Precio Actual</label>
+                <value id="current-price">0.00000</value>
+            </div>
+            <div class="data-card">
+                <label>Filtro EMA Institucional</label>
+                <value id="ema-value" style="color: #38bdf8;">0.00000</value>
+            </div>
         </div>
 
-        <!-- Tabla de Activos Financieros -->
-        <table>
-            <thead>
-                <tr>
-                    <th>Activo</th>
-                    <th>Precio</th>
-                    <th>Corr. DXY</th>
-                    <th>Estructura</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- DXY -->
-                <tr>
-                    <td><span class="activo-name">DXY</span><span class="sub-text">SMC Filter</span></td>
-                    <td class="precio-celda" id="val-DXY">99.700</td>
-                    <td class="neu">MATRIZ</td>
-                    <td><span class="badge alcista" id="str-DXY">MSS ALCISTA</span></td>
-                </tr>
-                <!-- EURUSD -->
-                <tr>
-                    <td><span class="activo-name">EURUSD</span><span class="sub-text">SMC Filter</span></td>
-                    <td class="precio-celda" id="val-EURUSD">1.15870</td>
-                    <td class="neg">-96%</td>
-                    <td><span class="badge bajista" id="str-EURUSD">MSS BAJISTA</span></td>
-                </tr>
-                <!-- GBPUSD -->
-                <tr>
-                    <td><span class="activo-name">GBPUSD</span><span class="sub-text">SMC Filter</span></td>
-                    <td class="precio-celda" id="val-GBPUSD">1.35340</td>
-                    <td class="neg">-96%</td>
-                    <td><span class="badge bajista" id="str-GBPUSD">MSS BAJISTA</span></td>
-                </tr>
-                <!-- USDCHF -->
-                <tr>
-                    <td><span class="activo-name">USDCHF</span><span class="sub-text">SMC Filter</span></td>
-                    <td class="precio-celda" id="val-USDCHF">0.86420</td>
-                    <td class="pos">+94%</td>
-                    <td><span class="badge alcista" id="str-USDCHF">MSS ALCISTA</span></td>
-                </tr>
-                <!-- XAUUSD -->
-                <tr>
-                    <td><span class="activo-name">XAUUSD</span><span class="sub-text">SMC Filter</span></td>
-                    <td class="precio-celda" id="val-XAUUSD">4455.15</td>
-                    <td class="neg">-96%</td>
-                    <td><span class="badge bajista" id="str-XAUUSD">MSS BAJISTA</span></td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div class="footer-note">
-            Filtro de Falsas Rupturas activo mediante escaneo de Order Blocks & MSS
+        <!-- Consola de Alertas Estructura Shift -->
+        <div id="alert-panel" class="alert-neutral">
+            <div class="alert-title">
+                <span id="signal-type">CONECTANDO CON FINNHUB...</span>
+            </div>
+            <div class="alert-details" id="signal-details">
+                Esperando ticks de mercado para inicializar algoritmos.
+            </div>
         </div>
     </div>
 
-    <!-- --- MOTOR DE FLUJO CONTINUO CORREGIDO --- -->
     <script>
-        // Configuración basada en Precios Reales de Cierre de Agosto 2026
-        const configuracionMercado = {
-            "val-EURUSD": { base: 1.15870, precision: 5, paso: 0.00012, estID: "str-EURUSD" },
-            "val-GBPUSD": { base: 1.35340, precision: 5, paso: 0.00015, estID: "str-GBPUSD" },
-            "val-USDCHF": { base: 0.86420, precision: 5, paso: 0.00010, estID: "str-USDCHF" },
-            "val-DXY":    { base: 99.700,  precision: 3, paso: 0.015,   estID: "str-DXY"    },
-            "val-XAUUSD": { base: 4455.15, precision: 2, paso: 0.65,    estID: "str-XAUUSD" }
+        // =========================================================================
+        // CONFIGURACIÓN: Reemplaza con tu Token Gratuito de Finnhub
+        // =========================================================================
+        const apiKey = "TU_API_KEY_AQUÍ"; 
+        
+        // Estructura de almacenamiento independiente para cada par de divisas
+        const parConfig = {
+            "OANDA:EUR_USD": { pricesLog: [], lastHigh: 0, lastLow: Infinity, currentEma: 0 },
+            "OANDA:GBP_USD": { pricesLog: [], lastHigh: 0, lastLow: Infinity, currentEma: 0 },
+            "OANDA:USD_CHF": { pricesLog: [], lastHigh: 0, lastLow: Infinity, currentEma: 0 }
         };
 
-        function simularFlujoInterbancario() {
-            Object.keys(configuracionMercado).forEach(id => {
-                const celda = document.getElementById(id);
-                if (!celda) return;
+        let parActivo = "OANDA:EUR_USD"; // Par visualizado por defecto
+        const maxLogLength = 20;
+        const emaPeriod = 9;
 
-                const config = configuracionMercado[id];
-                let precioActual = parseFloat(celda.innerText) || config.base;
+        // --- ENLACE WEBSOCKET PROFESIONAL ---
+        const ws = new WebSocket(`wss://ws.finnhub.io?token=${apiKey}`);
 
-                // Variación matemática calculada por tick
-                const variacion = (Math.random() - 0.5) * config.paso;
-                const nuevoPrecio = precioActual + variacion;
-
-                celda.innerText = nuevoPrecio.toFixed(config.precision);
-
-                // Alternar colores según la fluctuación del tick
-                if (variacion > 0) {
-                    celda.className = "precio-celda sube";
-                } else {
-                    celda.className = "precio-celda baja";
-                }
-
-                // Ajuste de estructura automática (MSS) basado en tendencias de volatilidad
-                const badgeEstructura = document.getElementById(config.estID);
-                if (badgeEstructura) {
-                    if (nuevoPrecio > config.base * 1.0003) {
-                        badgeEstructura.innerText = "MSS ALCISTA";
-                        badgeEstructura.className = "badge alcista";
-                    } else if (nuevoPrecio < config.base * 0.9997) {
-                        badgeEstructura.innerText = "MSS BAJISTA";
-                        badgeEstructura.className = "badge bajista";
-                    }
-                }
+        ws.onopen = () => {
+            console.log("Conectado con éxito a Finnhub Forex Engine.");
+            // Suscribirse de manera simultánea a los 3 pares institucionales
+            Object.keys(parConfig).forEach(symbol => {
+                ws.send(JSON.stringify({ 'type': 'subscribe', 'symbol': symbol }));
             });
+        };
+
+        ws.onmessage = (event) => {
+            const response = JSON.parse(event.data);
+            
+            if (response.type === 'trade') {
+                response.data.forEach(tick => {
+                    const symbol = tick.s;
+                    const price = parseFloat(tick.p);
+                    
+                    if (parConfig[symbol]) {
+                        procesarMotorTrading(symbol, price);
+                    }
+                });
+            }
+        };
+
+        // --- MOTOR DE TRADING INSTITUCIONAL CENTRALIZADO ---
+        function procesarMotorTrading(symbol, price) {
+            const data = parConfig[symbol];
+            data.pricesLog.push(price);
+            if (data.pricesLog.length > maxLogLength) data.pricesLog.shift();
+
+            // Calcular Media Móvil Exponencial (EMA)
+            if (data.pricesLog.length >= emaPeriod) {
+                if (data.currentEma === 0) {
+                    data.currentEma = data.pricesLog.slice(0, emaPeriod).reduce((a, b) => a + b) / emaPeriod;
+                } else {
+                    const k = 2 / (emaPeriod + 1);
+                    data.currentEma = price * k + data.currentEma * (1 - k);
+                }
+            }
+
+            // Lógica de Rastreo de Estructuras (Máximos y Mínimos Locales)
+            if (data.pricesLog.length > 5) {
+                const localHigh = Math.max(...data.pricesLog.slice(-5));
+                const localLow = Math.min(...data.pricesLog.slice(-5));
+
+                if (localHigh > data.lastHigh) data.lastHigh = localHigh;
+                if (localLow < data.lastLow) data.lastLow = localLow;
+
+                // Detección de Rupturas Estructurales (MSS) en base a tu captura de TradingView
+                if (price > data.lastHigh && price > data.currentEma && data.currentEma > 0) {
+                    data.lastHigh = price; // Actualizar estructura
+                    if (symbol === parActivo) actualizarPantallaAlertas('ALCISTA', price, localLow);
+                } 
+                else if (price < data.lastLow && price < data.currentEma && data.currentEma > 0) {
+                    data.lastLow = price; // Actualizar estructura
+                    if (symbol === parActivo) actualizarPantallaAlertas('BAJISTA', price, localHigh);
+                }
+            }
+
+            // Si el tick pertenece al par que el usuario está viendo, actualiza la pantalla principal
+            if (symbol === parActivo) {
+                // Ajuste de precisión de decimales típico de Forex (5 decimales)
+                document.getElementById('current-price').innerText = price.toFixed(5);
+                document.getElementById('ema-value').innerText = data.currentEma > 0 ? data.currentEma.toFixed(5) : "Calculando...";
+            }
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            console.log("Motor financiero FX-CORE reiniciado con precios corregidos.");
-            setInterval(simularFlujoInterbancario, 800);
-        });
-    </script>
-</body>
-</html>
+        // --- INTERFAZ DINÁMICA: CAMBIO DE PESTAÑA ---
+        function cambiarPar(nuevoPar) {
+            parActivo = nuevoPar;
+            
+            // Cambiar estilos de los botones del menú superior
