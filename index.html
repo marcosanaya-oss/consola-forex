@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FX-CORE | Terminal Autónoma v15.5</title>
+    <title>FX-CORE | Terminal Autónoma v15.6</title>
     <style>
         /* --- ESTILOS GENERALES Y PANEL OSCURO --- */
         body {
@@ -178,7 +178,7 @@
         <div class="market-data">
             <div class="data-card">
                 <label>Precio Actual</label>
-                <value id="current-price">Cargando...</value>
+                <value id="current-price">Conectando...</value>
             </div>
             <div class="data-card">
                 <label>Filtro EMA Institucional</label>
@@ -198,40 +198,45 @@
     </div>
 
     <script>
-        // Configuración de almacenamiento interno indexado por par
+        // Configuración de almacenamiento interno con streams públicos válidos de Binance
         const parConfig = {
             "EURUSD": { basePrice: 1.15940, stream: "eurusdt", pricesLog: [], lastHigh: 0, lastLow: Infinity, currentEma: 0 },
             "GBPUSD": { basePrice: 1.35320, stream: "gbpusdt", pricesLog: [], lastHigh: 0, lastLow: Infinity, currentEma: 0 },
-            "USDCHF": { basePrice: 0.81150, stream: "usdchy",  pricesLog: [], lastHigh: 0, lastLow: Infinity, currentEma: 0 }
+            "USDCHF": { basePrice: 0.81150, stream: "chfusdt",  pricesLog: [], lastHigh: 0, lastLow: Infinity, currentEma: 0 }
         };
 
         let parActivo = "EURUSD";
         const maxLogLength = 20;
         const emaPeriod = 9;
 
-        // --- CONEXIÓN DE BAJA LATENCIA 100% LIBRE (Binance Public WebSocket) ---
-        // Nos conectamos a un stream combinado para recibir actualizaciones en paralelo
-        const streams = Object.values(parConfig).map(p => `${p.stream}@ticker`).join('/');
-        const ws = new WebSocket(`wss://://binance.com{streams}`);
+        // Construcción limpia de streams combinados válidos
+        const streamPath = Object.values(parConfig).map(p => `${p.stream}@ticker`).join('/');
+        const ws = new WebSocket(`wss://://binance.com{streamPath}`);
 
         ws.onopen = () => {
-            console.log("Terminal FX-CORE activa usando canales públicos descentralizados.");
+            console.log("Terminal FX-CORE conectada con éxito.");
             document.getElementById('signal-type').innerText = "MONITOREANDO ACCIÓN DEL PRECIO";
             document.getElementById('signal-details').innerText = "Monitoreando rupturas y bloques institucionales activos.";
+            document.getElementById('current-price').innerText = "Esperando ticks...";
         };
 
         ws.onmessage = (event) => {
             const response = JSON.parse(event.data);
-            const streamName = response.stream ? response.stream.split('@')[0] : "";
+            if (!response.stream) return;
+
+            // Extraer el nombre plano del stream para la comparación
+            const incomingStream = response.stream.split('@')[0];
             
-            // Buscar a qué par de Forex mapear el flujo de datos libre
             Object.keys(parConfig).forEach(symbol => {
-                if (parConfig[symbol].stream === streamName) {
-                    // Extraemos el porcentaje de cambio instantáneo del mercado para replicarlo con precisión decimal de Forex
+                if (parConfig[symbol].stream === incomingStream) {
                     const changePercent = parseFloat(response.data.P) / 100; 
-                    const calculatedPrice = parConfig[symbol].basePrice * (1 + changePercent);
                     
-                    procesarMotorTrading(symbol, calculatedPrice);
+                    // Modificador inverso para USD/CHF ya que usamos el stream CHF/USDT
+                    const finalPrice = (symbol === "USDCHF") 
+                        ? parConfig[symbol].basePrice * (1 - changePercent)
+                        : parConfig[symbol].basePrice * (1 + changePercent);
+                    
+                    procesarMotorTrading(symbol, finalPrice);
                 }
             });
         };
@@ -260,7 +265,7 @@
                 if (localHigh > data.lastHigh || data.lastHigh === 0) data.lastHigh = localHigh;
                 if (localLow < data.lastLow || data.lastLow === Infinity) data.lastLow = localLow;
 
-                // Detección de Rupturas Estructurales (MSS) basados en tu estrategia institucional
+                // Detección de Rupturas Estructurales (MSS)
                 if (price > data.lastHigh && price > data.currentEma && data.currentEma > 0) {
                     data.lastHigh = price; 
                     if (symbol === parActivo) actualizarPantallaAlertas('ALCISTA', price, localLow);
@@ -271,8 +276,6 @@
                 }
             }
 
-            // Actualización inmediata si corresponde a la pestaña activa en pantalla
+            // Actualización de UI inmediata si corresponde a la pestaña seleccionada
             if (symbol === parActivo) {
                 document.getElementById('current-price').innerText = price.toFixed(5);
-                document.getElementById('ema-value').innerText = data.currentEma > 0 ? data.currentEma.toFixed(5) : "Calculando...";
-            }
