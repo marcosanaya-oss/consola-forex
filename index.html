@@ -75,10 +75,10 @@
       border-color: #2962ff;
     }
 
-    /* --- CONTENEDOR DEL GRÁFICO (REEMPLAZA EL IFRAME VIEJO) --- */
+    /* --- CONTENEDOR DEL GRÁFICO --- */
     .grafico-wrapper {
       width: 100%;
-      height: 600px; /* Altura ideal de escritorio para análisis técnico */
+      height: 600px; 
       background-color: #131722;
       border-radius: 4px;
       overflow: hidden;
@@ -89,57 +89,76 @@
 <body>
 
   <div class="terminal-container">
-    <!-- Encabezado de la Consola Financiera -->
     <div class="header-terminal">
       <h1 class="titulo-consola">FX-CORE TERMINAL</h1>
       
-      <!-- Panel de Selección de Divisas Interactivo -->
       <div class="botones-nav">
-        <button class="btn-forex active" id="btn-EURUSD" onclick="cambiarPar('EURUSD')">EUR/USD</button>
-        <button class="btn-forex" id="btn-GBPUSD" onclick="cambiarPar('GBPUSD')">GBP/USD</button>
-        <button class="btn-forex" id="btn-USDCHF" onclick="cambiarPar('USDCHF')">USD/CHF</button>
+        <button class="btn-forex active" id="btn-EURUSD" onclick="cambiarPar('FX:EURUSD')">EUR/USD</button>
+        <button class="btn-forex" id="btn-GBPUSD" onclick="cambiarPar('FX:GBPUSD')">GBP/USD</button>
+        <button class="btn-forex" id="btn-USDCHF" onclick="cambiarPar('FX:USDCHF')">USD/CHF</button>
       </div>
     </div>
 
-    <!-- Área de Visualización del Gráfico en Tiempo Real -->
-    <div class="grafico-wrapper">
-      <div id="tradingview_chart" style="width: 100%; height: 100%;"></div>
+    <!-- Área limpia de inyección -->
+    <div class="grafico-wrapper" id="contenedor-bloque-grafico">
+      <!-- El script se autoinyectará aquí dinámicamente -->
     </div>
   </div>
 
-  <!-- Librería de renderizado oficial de TradingView sin restricciones de iframe -->
-  <script type="text/javascript" src="https://tradingview.com"></script>
-  
   <script type="text/javascript">
-    // Función centralizada para inicializar y cambiar los pares del gráfico
     function cambiarPar(parCodigo) {
-      
-      // 1. Gestionar el estado visual de los botones activos
+      // 1. Manejo visual de botones activos
       document.querySelectorAll('.btn-forex').forEach(btn => btn.classList.remove('active'));
-      const botonSeleccionado = document.getElementById('btn-' + parCodigo);
+      
+      // Extraer el ID limpio quitando el prefijo "FX:"
+      const idLimpio = parCodigo.replace('FX:', '');
+      const botonSeleccionado = document.getElementById('btn-' + idLimpio);
       if (botonSeleccionado) {
         botonSeleccionado.classList.add('active');
       }
 
-      // 2. Instanciar el Widget oficial dentro del contenedor asignado
-      new TradingView.widget({
+      // 2. Destruir y reconstruir el contenedor para limpiar la caché del widget previo
+      const contenedorPadre = document.getElementById('contenedor-bloque-grafico');
+      contenedorPadre.innerHTML = ''; 
+
+      const subContenedor = document.createElement('div');
+      subContenedor.className = 'tradingview-widget-container';
+      subContenedor.style.width = '100%';
+      subContenedor.style.height = '100%';
+
+      const divWidget = document.createElement('div');
+      divWidget.className = 'tradingview-widget-container__widget';
+      divWidget.style.width = '100%';
+      divWidget.style.height = '100%';
+
+      subContenedor.appendChild(divWidget);
+      contenedorPadre.appendChild(subContenedor);
+
+      // 3. Crear e inyectar el script con la configuración del Widget Avanzado
+      const scriptWidget = document.createElement('script');
+      scriptWidget.type = 'text/javascript';
+      scriptWidget.src = 'https://tradingview.com';
+      scriptWidget.async = true;
+      
+      scriptWidget.text = JSON.stringify({
         "autosize": true,
-        "symbol": "FX:" + parCodigo, // Prefijo "FX:" para obtener datos de Forex compuestos y fluidos
-        "interval": "5",             // Gráfico predeterminado en temporalidad de 5 minutos
+        "symbol": parCodigo,
+        "interval": "5",
         "timezone": "Etc/UTC",
-        "theme": "dark",             // Tema oscuro para que combine con la UI institucional
-        "style": "1",                // Estilo "1" representa gráfico de velas japonesas
+        "theme": "dark",
+        "style": "1",
         "locale": "es",
-        "enable_publishing": false,
-        "hide_side_toolbar": false,  // Muestra las herramientas de dibujo técnico a la izquierda
-        "allow_symbol_change": true,
-        "container_id": "tradingview_chart"
+        "allow_symbol_change": false,
+        "calendar": false,
+        "support_host": "https://tradingview.com"
       });
+
+      subContenedor.appendChild(scriptWidget);
     }
 
-    // Evento de ciclo de vida: Inicializa el gráfico inmediatamente al cargar el DOM de la aplicación
+    // Inicialización automática
     window.addEventListener('DOMContentLoaded', () => {
-      cambiarPar('EURUSD');
+      cambiarPar('FX:EURUSD');
     });
   </script>
 
