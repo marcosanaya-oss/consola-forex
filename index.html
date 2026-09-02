@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FX-CORE | Terminal TradingView Realtime</title>
+  <title>FX-CORE | Terminal Financiera Nativa</title>
   
+  <!-- Librería de gráficos de alto rendimiento Open Source -->
+  <script src="https://jsdelivr.net"></script>
+
   <style>
-    /* --- CONFIGURACIÓN DE PANTALLA GENERAL --- */
+    /* --- CONFIGURACIÓN DE PANTALLA --- */
     body {
       background-color: #0b0f19;
       color: #ffffff;
@@ -29,6 +32,9 @@
     }
 
     .header-terminal {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 20px;
       border-bottom: 1px solid #2a2e39;
       padding-bottom: 15px;
@@ -42,42 +48,201 @@
       margin: 0;
     }
 
-    /* --- CONTENEDOR FLUIDO DEL ENTORNO GRÁFICO --- */
-    .contenedor-grafico-maestro {
-      width: 100%;
-      height: 650px; /* Altura ideal de escritorio para análisis técnico profesional */
-      background-color: #1c2030;
-      border-radius: 6px;
-      overflow: hidden;
-      border: 1px solid #2a2e39;
+    .btn-refrescar {
+      background-color: #2962ff;
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
     }
 
-    iframe {
+    .btn-refrescar:hover {
+      background-color: #194fd3;
+    }
+
+    /* --- DASHBOARD Y BOTONES INTERACTIVOS --- */
+    .dashboard-forex {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
       width: 100%;
-      height: 100%;
-      border: none;
-      display: block;
+      margin-bottom: 25px;
+    }
+
+    .tarjeta-divisa {
+      background-color: #1c2030;
+      border: 1px solid #2a2e39;
+      border-radius: 6px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .tarjeta-divisa.activa {
+      border-color: #2962ff;
+      background-color: #151926;
+    }
+
+    .tarjeta-divisa h3 {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+      color: #b2b5be;
+    }
+
+    .precio-valor {
+      font-size: 32px;
+      font-weight: bold;
+      color: #ffffff;
+    }
+
+    /* --- CONTENEDOR DEL GRÁFICO NATIVO --- */
+    .contenedor-grafico {
+      width: 100%;
+      height: 400px;
+      background-color: #1c2030;
+      border-radius: 6px;
+      padding: 15px;
+      box-sizing: border-box;
+      border: 1px solid #2a2e39;
     }
   </style>
 </head>
 <body>
 
   <div class="terminal-container">
-    <!-- Encabezado Institucional -->
     <div class="header-terminal">
       <h1 class="titulo-consola">FX-CORE TERMINAL</h1>
+      <button class="btn-refrescar" onclick="obtenerDatosFinancieros()">🔄 Actualizar Datos</button>
     </div>
 
-    <!-- Área de Visualización en Tiempo Real Avanzada -->
-    <div class="contenedor-grafico-maestro">
-      <!-- Iframe nativo con lista de seguimiento (Watchlist) integrada para EURUSD, GBPUSD y USDCHF -->
-      <iframe 
-        src="https://tradingview.com" 
-        scrolling="no" 
-        allowfullscreen>
-      </iframe>
+    <!-- Botones/Tarjetas de Selección de Divisa -->
+    <div class="dashboard-forex">
+      <div id="card-EURUSD" class="tarjeta-divisa activa" onclick="seleccionarPar('EURUSD')">
+        <h3>EUR / USD</h3>
+        <div id="precio-EURUSD" class="precio-valor">0.0000</div>
+      </div>
+      <div id="card-GBPUSD" class="tarjeta-divisa" onclick="seleccionarPar('GBPUSD')">
+        <h3>GBP / USD</h3>
+        <div id="precio-GBPUSD" class="precio-valor">0.0000</div>
+      </div>
+      <div id="card-USDJPY" class="tarjeta-divisa" onclick="seleccionarPar('USDJPY')">
+        <h3>USD / JPY</h3>
+        <div id="precio-USDJPY" class="precio-valor">0.0000</div>
+      </div>
+    </div>
+
+    <!-- El lienzo gráfico nativo de HTML5 -->
+    <div class="contenedor-grafico">
+      <canvas id="graficoNativo"></canvas>
     </div>
   </div>
 
+  <script type="text/javascript">
+    let parActivo = 'EURUSD';
+    let miGrafico = null;
+    
+    // Almacén temporal de precios simulando ticks de mercado para dibujar la curva
+    let memoriaHistorica = {
+      EURUSD: [1.0820, 1.0825, 1.0818, 1.0830, 1.0822, 1.0835],
+      GBPUSD: [1.2610, 1.2615, 1.2608, 1.2622, 1.2618, 1.2630],
+      USDJPY: [150.20, 150.25, 150.12, 150.38, 150.30, 150.45]
+    };
+
+    // Inicializar el constructor gráfico de Chart.js con estilos oscuros
+    function inicializarGrafico() {
+      const ctx = document.getElementById('graficoNativo').getContext('2d');
+      miGrafico = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['10:00', '11:00', '12:00', '13:00', '14:00', 'En vivo'],
+          datasets: [{
+            label: `Precio ${parActivo}`,
+            data: memoriaHistorica[parActivo],
+            borderColor: '#2962ff',
+            backgroundColor: 'rgba(41, 98, 255, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: '#2a2e39' }, ticks: { color: '#b2b5be' } },
+            y: { grid: { color: '#2a2e39' }, ticks: { color: '#b2b5be' } }
+          }
+        }
+      });
+    }
+
+    // API Pública de tasas de cambio abiertas sin restricciones de seguridad de origen (CORS)
+    async function obtenerDatosFinancieros() {
+      try {
+        const respuesta = await fetch('https://er-api.com');
+        if (!respuesta.ok) throw new Error();
+        const datos = await respuesta.json();
+        
+        // Conversión y procesamiento matemático de los pares de Forex
+        const usd_eur = datos.rates.EUR;
+        const usd_gbp = datos.rates.GBP;
+        const usd_jpy = datos.rates.JPY;
+
+        const eurusd = (1 / usd_eur);
+        const gbpusd = (1 / usd_gbp);
+        const usdjpy = usd_jpy;
+
+        // Actualizar valores numéricos en la interfaz
+        document.getElementById('precio-EURUSD').innerText = eurusd.toFixed(4);
+        document.getElementById('precio-GBPUSD').innerText = gbpusd.toFixed(4);
+        document.getElementById('precio-USDJPY').innerText = usdjpy.toFixed(2);
+
+        // Añadir el nuevo precio extraído al gráfico dinámicamente
+        actualizarCurvaGrafico('EURUSD', eurusd);
+        actualizarCurvaGrafico('GBPUSD', gbpusd);
+        actualizarCurvaGrafico('USDJPY', usdjpy);
+
+      } catch (error) {
+        console.error("Error obteniendo datos puros JSON:", error);
+      }
+    }
+
+    function actualizarCurvaGrafico(par, nuevoPrecio) {
+      memoriaHistorica[par].shift(); // Remueve el dato más antiguo
+      memoriaHistorica[par].push(nuevoPrecio); // Agrega el tick fresco
+      
+      if (par === parActivo && miGrafico) {
+        miGrafico.data.datasets[0].data = memoriaHistorica[par];
+        miGrafico.update();
+      }
+    }
+
+    function seleccionarPar(par) {
+      parActivo = par;
+      
+      // Control visual de estados en los botones
+      document.querySelectorAll('.tarjeta-divisa').forEach(card => card.classList.remove('activa'));
+      document.getElementById(`card-${par}`).classList.add('activa');
+      
+      // Cambiar datos del gráfico
+      if (miGrafico) {
+        miGrafico.data.datasets[0].label = `Precio ${par}`;
+        miGrafico.data.datasets[0].data = memoriaHistorica[par];
+        miGrafico.update();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      inicializarGrafico();
+      obtenerDatosFinancieros();
+      // Auto-refresco de datos cada 10 segundos
+      setInterval(obtenerDatosFinancieros, 10000);
+    });
+  </script>
 </body>
 </html>
