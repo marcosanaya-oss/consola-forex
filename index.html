@@ -45,151 +45,155 @@
       margin: 0;
     }
 
-    .botones-nav {
-      display: flex;
-      gap: 10px;
+    /* --- CONTENEDOR DE TARJETAS FINANCIERAS EN LINEA --- */
+    .dashboard-forex {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      width: 100%;
+      margin-top: 10px;
     }
 
-    /* --- ESTILOS DE LOS BOTONES --- */
-    .btn-forex {
-      background-color: #1e222d;
+    .tarjeta-divisa {
+      background-color: #1c2030;
+      border: 1px solid #2a2e39;
+      border-radius: 6px;
+      padding: 25px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+
+    .tarjeta-divisa h3 {
+      margin: 0 0 15px 0;
+      font-size: 18px;
       color: #b2b5be;
-      border: 1px solid #2a2e39;
-      padding: 10px 20px;
-      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    .precio-valor {
+      font-size: 36px;
+      font-weight: bold;
+      color: #ffffff;
+      margin-bottom: 10px;
+      transition: color 0.2s ease-in-out;
+    }
+
+    .variacion-valor {
+      font-size: 16px;
       font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .btn-forex:hover {
-      background-color: #2a2e39;
-      color: #ffffff;
-      border-color: #2962ff;
-    }
-
-    .btn-forex.active {
-      background-color: #2962ff;
-      color: #ffffff;
-      border-color: #2962ff;
-    }
-
-    /* --- CONTENEDOR DEL GRÁFICO --- */
-    .grafico-wrapper {
-      width: 100%;
-      height: 600px; 
-      background-color: #131722;
-      border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid #2a2e39;
-      position: relative;
-    }
-
-    /* Controladores de visualización para capas estáticas */
-    .capa-grafico {
-      width: 100%;
-      height: 100%;
-      display: none; /* Ocultos por defecto */
-    }
-
-    .capa-grafico.visible {
-      display: block; /* Solo se muestra el activo */
+      color: #b2b5be;
     }
   </style>
 </head>
 <body>
 
   <div class="terminal-container">
+    <!-- Encabezado de la Terminal -->
     <div class="header-terminal">
       <h1 class="titulo-consola">FX-CORE TERMINAL</h1>
-      
-      <div class="botones-nav">
-        <button class="btn-forex active" id="btn-EURUSD" onclick="mostrarGrafico('EURUSD')">EUR/USD</button>
-        <button class="btn-forex" id="btn-GBPUSD" onclick="mostrarGrafico('GBPUSD')">GBP/USD</button>
-        <button class="btn-forex" id="btn-USDCHF" onclick="mostrarGrafico('USDCHF')">USD/CHF</button>
-      </div>
     </div>
 
-    <!-- Área con cargas estáticas incrustadas directamente -->
-    <div class="grafico-wrapper">
+    <!-- Panel de Cotizaciones en Vivo sin Bloqueos de Seguridad -->
+    <div class="dashboard-forex">
       
-      <!-- Contenedor EURUSD -->
-      <div id="grafico-EURUSD" class="capa-grafico visible">
-        <div class="tradingview-widget-container" style="height:100%;width:100%">
-          <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-          <script type="text/javascript" src="https://tradingview.com" async>
-          {
-            "autosize": true,
-            "symbol": "FX:EURUSD",
-            "interval": "5",
-            "timezone": "Etc/UTC",
-            "theme": "dark",
-            "style": "1",
-            "locale": "es",
-            "allow_symbol_change": false,
-            "calendar": false,
-            "support_host": "https://tradingview.com"
-          }
-          </script>
-        </div>
+      <!-- Bloque EUR/USD -->
+      <div class="tarjeta-divisa">
+        <h3>EUR / USD</h3>
+        <div id="precio-EURUSD" class="precio-valor">0.0000</div>
+        <div id="cambio-EURUSD" class="variacion-valor">0.00%</div>
       </div>
 
-      <!-- Contenedor GBPUSD -->
-      <div id="grafico-GBPUSD" class="capa-grafico">
-        <div class="tradingview-widget-container" style="height:100%;width:100%">
-          <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-          <script type="text/javascript" src="https://tradingview.com" async>
-          {
-            "autosize": true,
-            "symbol": "FX:GBPUSD",
-            "interval": "5",
-            "timezone": "Etc/UTC",
-            "theme": "dark",
-            "style": "1",
-            "locale": "es",
-            "allow_symbol_change": false,
-            "calendar": false,
-            "support_host": "https://tradingview.com"
-          }
-          </script>
-        </div>
+      <!-- Bloque GBP/USD -->
+      <div class="tarjeta-divisa">
+        <h3>GBP / USD</h3>
+        <div id="precio-GBPUSD" class="precio-valor">0.0000</div>
+        <div id="cambio-GBPUSD" class="variacion-valor">0.00%</div>
       </div>
 
-      <!-- Contenedor USDCHF -->
-      <div id="grafico-USDCHF" class="capa-grafico">
-        <div class="tradingview-widget-container" style="height:100%;width:100%">
-          <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-          <script type="text/javascript" src="https://tradingview.com" async>
-          {
-            "autosize": true,
-            "symbol": "FX:USDCHF",
-            "interval": "5",
-            "timezone": "Etc/UTC",
-            "theme": "dark",
-            "style": "1",
-            "locale": "es",
-            "allow_symbol_change": false,
-            "calendar": false,
-            "support_host": "https://tradingview.com"
-          }
-          </script>
-        </div>
+      <!-- Bloque USD/CHF -->
+      <div class="tarjeta-divisa">
+        <h3>USD / CHF</h3>
+        <div id="precio-USDCHF" class="precio-valor">0.0000</div>
+        <div id="cambio-USDCHF" class="variacion-valor">0.00%</div>
       </div>
 
     </div>
   </div>
 
+  <!-- MOTOR DE EXTRACCIÓN DE DATOS (JAVASCRIPT INTEGRADO) -->
   <script type="text/javascript">
-    function mostrarGrafico(parId) {
-      // 1. Alternar clases activas de los botones de la interfaz
-      document.querySelectorAll('.btn-forex').forEach(btn => btn.classList.remove('active'));
-      document.getElementById('btn-' + parId).classList.add('active');
+    const PARES = ["EURUSD", "GBPUSD", "USDCHF"];
+    const INTERVALO = 4000; // Actualización balanceada cada 4 segundos
+    let preciosPrevios = { EURUSD: 0, GBPUSD: 0, USDCHF: 0 };
 
-      // 2. Alternar visibilidad de las capas HTML nativas
-      document.querySelectorAll('.capa-grafico').forEach(capa => capa.classList.remove('visible'));
-      document.getElementById('grafico-parId'.replace('parId', parId)).classList.add('visible');
+    async function consumirApiFinanciera(par) {
+      // Endpoint financiero encapsulado dentro de un resolver CORS libre de restricciones
+      const urlDestino = `https://financeyahoo.com{par}=X?interval=1m&range=1d`;
+      const apiEndpoint = `https://allorigins.win{encodeURIComponent(urlDestino)}`;
+
+      try {
+        const respuesta = await fetch(apiEndpoint);
+        if (!respuesta.ok) throw new Error();
+        
+        const paquete = await respuesta.json();
+        const objetoMercado = JSON.parse(paquete.contents);
+        
+        const metadatos = objetoMercado.chart.result[0].meta;
+        const precioActual = metadatos.regularMarketPrice;
+        const cierreAnterior = metadatos.previousClose;
+        
+        // Cálculo estricto del porcentaje diario
+        const cambioPorcentaje = (((precioActual - cierreAnterior) / cierreAnterior) * 100).toFixed(2);
+
+        renderizarPrecios(par, precioActual, cambioPorcentaje);
+      } catch (err) {
+        console.warn(`[Auditoría] Error de sincronización de red en par: ${par}`);
+        const nodoError = document.getElementById(`precio-${par}`);
+        if(nodoError) nodoError.innerText = "Sincronizando...";
+      }
     }
+
+    function renderizarPrecios(par, precio, variacion) {
+      const elPrecio = document.getElementById(`precio-${par}`);
+      const elCambio = document.getElementById(`cambio-${par}`);
+      
+      if (!elPrecio || !elCambio) return;
+
+      // Inyección estricta del valor formateado a decimales de Forex
+      elPrecio.innerText = precio.toFixed(4);
+      const prefijoSigno = variacion > 0 ? "+" : "";
+      elCambio.innerText = `${prefijoSigno}${variacion}%`;
+
+      // Flujo de comportamiento visual (Verde Alcista / Rojo Bajista)
+      if (preciosPrevios[par] > 0) {
+        if (precio > preciosPrevios[par]) {
+          elPrecio.style.color = "#00e676";
+        } else if (precio < preciosPrevios[par]) {
+          elPrecio.style.color = "#ff5252";
+        }
+        setTimeout(() => { elPrecio.style.color = "#ffffff"; }, 900);
+      }
+
+      // Estilo permanente para la tasa de variación
+      if (variacion > 0) {
+        elCambio.style.color = "#00e676";
+      } else if (variacion < 0) {
+        elCambio.style.color = "#ff5252";
+      } else {
+        elCambio.style.color = "#b2b5be";
+      }
+
+      preciosPrevios[par] = precio;
+    }
+
+    function inicializarTerminal() {
+      PARES.forEach(p => consumirApiFinanciera(p));
+      setInterval(() => {
+        PARES.forEach(p => consumirApiFinanciera(p));
+      }, INTERVALO);
+    }
+
+    window.addEventListener("DOMContentLoaded", inicializarTerminal);
   </script>
 
 </body>
