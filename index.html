@@ -6,7 +6,7 @@
   <title>FX-CORE | Terminal TradingView Realtime</title>
   
   <style>
-    /* --- ESTILOS GENERALES INSTITUCIONALES --- */
+    /* --- CONFIGURACIÓN DE PANTALLA --- */
     body {
       background-color: #0b0f19;
       color: #ffffff;
@@ -29,7 +29,7 @@
     }
 
     .header-terminal {
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       border-bottom: 1px solid #2a2e39;
       padding-bottom: 15px;
     }
@@ -50,12 +50,19 @@
       width: 100%;
     }
 
-    .tarjeta-widget-nativa {
-      height: 220px; /* Altura optimizada para mostrar precio y mini-gráfico lineal */
+    .tarjeta-iframe {
+      height: 140px; /* Altura ideal para la tarjeta compacta de cotización */
       background-color: #1c2030;
       border-radius: 6px;
       overflow: hidden;
       border: 1px solid #2a2e39;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
     }
   </style>
 </head>
@@ -66,70 +73,22 @@
       <h1 class="titulo-consola">FX-CORE TERMINAL</h1>
     </div>
 
-    <!-- Panel de Cotizaciones en Vivo de una Sola Línea de Código -->
+    <!-- Panel de Cotizaciones en Vivo Embebido Directo -->
     <div class="dashboard-forex">
       
-      <!-- Componente Nativo Automatizado EUR/USD -->
-      <div class="tarjeta-widget-nativa">
-        <div class="tradingview-widget-container" style="width: 100%; height: 100%;">
-          <div class="tradingview-widget-container__widget"></div>
-          <script type="text/javascript" src="https://tradingview.com" async>
-          {
-            "symbol": "FX:EURUSD",
-            "width": "100%",
-            "height": "100%",
-            "locale": "es",
-            "dateRange": "1d",
-            "colorTheme": "dark",
-            "isWidescreen": true,
-            "autosize": true,
-            "trendLineColor": "#37a6ef",
-            "underLineColor": "rgba(55, 166, 239, 0.15)"
-          }
-          </script>
-        </div>
+      <!-- Bloque Seguro EUR/USD -->
+      <div class="tarjeta-iframe">
+        <iframe src="https://tradingview.com" scrolling="no"></iframe>
       </div>
 
-      <!-- Componente Nativo Automatizado GBP/USD -->
-      <div class="tarjeta-widget-nativa">
-        <div class="tradingview-widget-container" style="width: 100%; height: 100%;">
-          <div class="tradingview-widget-container__widget"></div>
-          <script type="text/javascript" src="https://tradingview.com" async>
-          {
-            "symbol": "FX:GBPUSD",
-            "width": "100%",
-            "height": "100%",
-            "locale": "es",
-            "dateRange": "1d",
-            "colorTheme": "dark",
-            "isWidescreen": true,
-            "autosize": true,
-            "trendLineColor": "#00e676",
-            "underLineColor": "rgba(0, 230, 118, 0.15)"
-          }
-          </script>
-        </div>
+      <!-- Bloque Seguro GBP/USD -->
+      <div class="tarjeta-iframe">
+        <iframe src="https://tradingview.com" scrolling="no"></iframe>
       </div>
 
-      <!-- Componente Nativo Automatizado USD/CHF -->
-      <div class="tarjeta-widget-nativa">
-        <div class="tradingview-widget-container" style="width: 100%; height: 100%;">
-          <div class="tradingview-widget-container__widget"></div>
-          <script type="text/javascript" src="https://tradingview.com" async>
-          {
-            "symbol": "FX:USDCHF",
-            "width": "100%",
-            "height": "100%",
-            "locale": "es",
-            "dateRange": "1d",
-            "colorTheme": "dark",
-            "isWidescreen": true,
-            "autosize": true,
-            "trendLineColor": "#ff5252",
-            "underLineColor": "rgba(255, 82, 82, 0.15)"
-          }
-          </script>
-        </div>
+      <!-- Bloque Seguro USD/CHF -->
+      <div class="tarjeta-iframe">
+        <iframe src="https://tradingview.com" scrolling="no"></iframe>
       </div>
 
     </div>
